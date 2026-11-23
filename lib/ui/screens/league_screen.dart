@@ -3,7 +3,7 @@ import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:stelinda/dev_tools.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/main.dart';
 import 'package:stelinda/models/responses/LeagueProgressResponse.dart';
@@ -219,7 +219,7 @@ class _LeagueScreenState extends State<LeagueScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _backgroundColor,
-      floatingActionButton: kDebugMode
+      floatingActionButton: kDevTools
           ? Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: GestureDetector(

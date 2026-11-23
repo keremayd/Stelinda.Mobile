@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:stelinda/dev_tools.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/Utils/AppNotifier.dart';
 import 'package:stelinda/main.dart';
@@ -311,7 +311,7 @@ class _QuestsScreenState extends State<QuestsScreen>
           SafeArea(child: _buildBody()),
           // Tasarım aracı: kutlamayı sunucuya dokunmadan tetikler.
           // Release derlemesine girmez.
-          if (kDebugMode)
+          if (kDevTools)
             Positioned(
               right: 18,
               bottom: 28,
@@ -2277,7 +2277,7 @@ class _QuestsSkeleton extends StatelessWidget {
 
 /// Kutlamayı sunucuya dokunmadan tetikleyen tasarım aracı.
 ///
-/// Yalnızca `kDebugMode` altında gösterilir; animasyonu tekrar tekrar izleyip
+/// Yalnızca `kDevTools` açıkken gösterilir; animasyonu tekrar tekrar izleyip
 /// ayarlayabilmek için var. Kutlama tasarımı kesinleşince bu sınıf ve
 /// `_playCelebrationDemo` silinecek — kalıcı bir özellik değildir.
 class _DemoCelebrationButton extends StatelessWidget {

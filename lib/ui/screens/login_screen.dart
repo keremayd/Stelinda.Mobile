@@ -1,6 +1,6 @@
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:stelinda/dev_tools.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/main.dart';
@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login(LoginMethod method, {bool useTestAccount = false}) async {
     if (_isLoading) return;
-    if (useTestAccount && !kDebugMode) return;
+    if (useTestAccount && !kDevTools) return;
     if (method == LoginMethod.usernamePassword &&
         !useTestAccount &&
         !_validateCredentials()) {
@@ -135,10 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
         LoginMethod.apple => authService.signInWithApple(context),
         LoginMethod.usernamePassword => authService.signIn(
             // Test hesabı yalnız debug derlemesindeki ayrı butondan gelir.
-            useTestAccount
-                ? 'sefa@gmail.com'
-                : _usernameController.text.trim(),
-            useTestAccount ? 'sefa123' : _passwordController.text,
+            useTestAccount ? _testEmail : _usernameController.text.trim(),
+            useTestAccount ? _testPassword : _passwordController.text,
             context,
           ),
       };
@@ -392,7 +390,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () => _login(LoginMethod.apple),
                       ),
                     ),
-                  if (kDebugMode)
+                  if (kDevTools)
                     Positioned(
                       left: 143 * scale,
                       top: 1190 * scale,
@@ -666,3 +664,8 @@ class _PrimaryLoginButton extends StatelessWidget {
     );
   }
 }
+
+// Debug'daki TEST GİRİŞİ'nin hesabı. Sabit ifade yayın derlemesinde boş
+// dizeye iner; adres ve şifre yayın derlemesine girmez.
+const _testEmail = kDevTools ? 'sefa@gmail.com' : '';
+const _testPassword = kDevTools ? 'sefa123' : '';

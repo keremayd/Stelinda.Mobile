@@ -1,3 +1,4 @@
+import 'package:stelinda/dev_tools.dart';
 import 'package:stelinda/l10n/app_language.dart';
 import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/models/karty_session.dart';
@@ -239,6 +240,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       navigatorObservers: [routeObserver],
       title: 'Stelinda',
+      debugShowCheckedModeBanner: kDevTools,
       // Arayüzün dili kullanıcının ana dili (Türkçe, Arnavutça).
       locale: context.watch<AppLanguage>().locale,
       supportedLocales: AppLocalizations.supportedLocales,

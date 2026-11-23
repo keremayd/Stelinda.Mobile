@@ -1,5 +1,5 @@
 import 'package:stelinda/ui/app_typography.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:stelinda/dev_tools.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class KartyPlaySurface extends StatelessWidget {
     this.prompt,
     this.promptVisible = true,
     this.debugAction,
-    this.reserveDebugSpace = kDebugMode,
+    this.reserveDebugSpace = kDevTools,
     this.overlays = const [],
   });
 

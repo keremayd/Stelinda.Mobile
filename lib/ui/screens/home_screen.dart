@@ -1,7 +1,7 @@
 import 'package:stelinda/l10n/l10n.dart';
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:stelinda/dev_tools.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/models/karty_path.dart';
 import 'package:stelinda/models/karty_session.dart';
@@ -535,7 +535,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onArrivalDone: _arrivalDone,
       onDocked: () => context.read<GameFeedbackService>().docked(),
     );
-    if (!kDebugMode) return screen;
+    if (!kDevTools) return screen;
     return Stack(
       children: [
         screen,

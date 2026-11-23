@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:stelinda/dev_tools.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/Utils/AppNotifier.dart';
 import 'package:stelinda/models/Karty.dart';
@@ -253,7 +253,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
           // Bekleyen Karty yokken debug kartından açılan ekran, gerçek
           // tamamlanma sonucunu görsel olarak inceletebilsin. Üretimde bu
           // değerler yalnızca sunucunun döndürdüğü sonuçtan gelir.
-          if (kDebugMode) {
+          if (kDevTools) {
             _reviewRewardTickets = 1;
           }
         });
@@ -971,7 +971,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
   /// Test kolaylığı: sorunun doğru cevabını normal cevap akışına verir.
   /// Puan ve boost doğrudan artırılmaz; sunucu ve animasyonlar aynen çalışır.
   Future<void> _debugAnswerCorrectly() async {
-    if (!kDebugMode || !_questionOpen || _isIntroducing) return;
+    if (!kDevTools || !_questionOpen || _isIntroducing) return;
     if (kartyProvider.cards.isEmpty) return;
 
     final card = kartyProvider.cards.first;
@@ -1437,7 +1437,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
                                     ),
                                   ),
                             // Sadece debug sürümünde; ana cevaplarla aynı ağırlıkta değil.
-                            debugAction: kDebugMode &&
+                            debugAction: kDevTools &&
                                     loaded &&
                                     !introducing &&
                                     !timedOut
