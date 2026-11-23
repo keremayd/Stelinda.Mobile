@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:stelinda/main.dart';
 import 'package:stelinda/models/responses/LeagueProgressResponse.dart';
 import 'package:stelinda/providers/ScoreWithLivesProvider.dart';
+import 'package:stelinda/providers/UserProvider.dart';
 import 'package:stelinda/services/UserService.dart';
 import 'package:stelinda/ui/widgets/ProfilePhoto.dart';
 import 'package:stelinda/ui/widgets/Buttons/app_icon_control_button.dart';
@@ -1051,7 +1052,12 @@ class _RowAvatar extends StatelessWidget {
     final radius = 20 * scale;
 
     // Kendi satırında fotoğraf, ana ekrandaki gibi provider üzerinden gelir.
-    if (entry.isCurrentUser) {
+    // Fotoğraf yoksa öbür satırlardaki gibi baş harfler: varsayılan profil
+    // görseli kullanıcıyı temsil etmiyordu (kullanıcı, 23 Kas 2026).
+    final ownPhoto = entry.isCurrentUser
+        ? context.watch<UserProvider>().user?.profilePhotoUrl
+        : null;
+    if (ownPhoto != null && ownPhoto.isNotEmpty) {
       return ProfilePhotoWidget(
         width: size,
         height: size,
