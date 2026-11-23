@@ -2147,15 +2147,22 @@ class _PathNode extends StatelessWidget {
         _ => 'Sıradaki deste',
       },
       onTap: onTap,
-      // Sırası gelmemiş deste şimşek yerine kilit taşır (19 Kas 2026,
-      // kullanıcı): ünite başlığındaki kilidin aynısı. Kilitli ünitede
-      // patikayla birlikte söner.
-      child: lit
-          ? QuestIcon(questKey: 'correct_five', size: width * 0.56 * scale)
-          : _ToneIcon(
-              tone: dimmed ? _IconTone.muted : _IconTone.lit,
-              child: KartyLockMark(size: width * _lockShare * scale),
-            ),
+      // Biten deste şimşek yerine onay taşır (23 Kas 2026, kullanıcı:
+      // "motive etsin"): hedefe ulaşan kapının beyaz onayının aynısı.
+      // Sırası gelmemiş deste kilit taşır (19 Kas 2026, kullanıcı): ünite
+      // başlığındaki kilidin aynısı; kilitli ünitede patikayla birlikte söner.
+      child: switch (step.state) {
+        KartyStepState.done => KartyControlMark(
+            glyph: KartyControlGlyph.check,
+            size: width * 0.42 * scale,
+          ),
+        _ when lit =>
+          QuestIcon(questKey: 'correct_five', size: width * 0.56 * scale),
+        _ => _ToneIcon(
+            tone: dimmed ? _IconTone.muted : _IconTone.lit,
+            child: KartyLockMark(size: width * _lockShare * scale),
+          ),
+      },
     );
   }
 
