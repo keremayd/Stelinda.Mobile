@@ -239,9 +239,11 @@ class _OptionTileState extends State<_OptionTile>
                       ),
                       child: Stack(fit: StackFit.expand, children: [
                         // Büyük karoda parlama düğümünkinden iri durmasın.
+                        // Sol üstteki çizgi parlaması yok (23 Kas 2026,
+                        // kullanıcı); üst kenarın cam parlaması kalır.
                         CustomPaint(
                           painter: FaceGlossPainter(
-                              radius: radius, unitWidth: 150 * s),
+                              radius: radius, unitWidth: 150 * s, spot: false),
                         ),
                         Padding(
                           padding: EdgeInsets.all(34 * s),

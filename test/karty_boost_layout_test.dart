@@ -84,7 +84,9 @@ void main() {
     final debug = tester.getRect(find.byKey(const ValueKey('debug-answer')));
     expect(card.bottom, lessThan(actions.top));
     expect(actions.bottom, lessThan(debug.top));
-    expect(debug.bottom, lessThanOrEqualTo(568 - 34));
+    // Test düğmesi (yalnız debug) yerleşime yer ayırmıyor: cevapların altında,
+    // ekranın alt güvenli alanında durabilir ama ekrandan taşmaz.
+    expect(debug.bottom, lessThanOrEqualTo(568));
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });

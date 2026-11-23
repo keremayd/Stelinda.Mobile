@@ -1,5 +1,4 @@
 import 'package:stelinda/ui/app_typography.dart';
-import 'package:stelinda/dev_tools.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -29,7 +28,6 @@ class KartyPlaySurface extends StatelessWidget {
     this.prompt,
     this.promptVisible = true,
     this.debugAction,
-    this.reserveDebugSpace = kDevTools,
     this.overlays = const [],
   });
 
@@ -42,11 +40,11 @@ class KartyPlaySurface extends StatelessWidget {
 
   /// Soru düzeni değişirken yönerge gövdeyle birlikte söner.
   final bool promptVisible;
+  /// Geliştirici düğmesi (yalnız debug). Yerleşime yer ayırmaz: cevapların
+  /// altındaki boşlukta durur; test ederken görülen ekran yayındakiyle aynı
+  /// (23 Kas 2026, kullanıcı). Önceden debug'da ona yer ayrılıyor, kart ve
+  /// cevaplar yayındakinden biraz yukarıda ve kısa çiziliyordu.
   final Widget? debugAction;
-
-  /// Stable for the whole session: hiding the debug action must not resize
-  /// the deck on timeout, introduction, pause or retry.
-  final bool reserveDebugSpace;
   final List<Widget> overlays;
 
   @override
@@ -60,20 +58,20 @@ class KartyPlaySurface extends StatelessWidget {
           final headerTop = math.max(safe.top, height * .0758 - 4.875 * scale);
           final headerHeight = math.max(44.0, 84.75 * scale) + 4.875 * scale;
           final bottom = height - math.max(safe.bottom, 20 * scale);
-          final debugHeight = math.max(44.0, height * .053);
-          final debugTop = math.min(height * .92, bottom - debugHeight);
           final actionsHeight = 131.25 * scale;
           final actionsTop = math.min(
-            height * (reserveDebugSpace ? .83 : .855),
-            (reserveDebugSpace ? debugTop - 12 * scale : bottom - 22 * scale) -
-                actionsHeight,
+            height * .855,
+            bottom - 22 * scale - actionsHeight,
           );
+          final debugTop = actionsTop + actionsHeight + 4 * scale;
+          final debugHeight =
+              math.max(24.0, math.min(44.0, height - debugTop - 2));
           final cardTop = height * .19 + (height * .075 - 97.35 * scale) / 2;
           final deckTop = height * .282;
           final titleGap = deckTop - cardTop;
           final layerOffset = 30 * scale;
           final cardHeight = math.min(
-            height * (reserveDebugSpace ? .48 : .508),
+            height * .508,
             actionsTop - 40 * scale - deckTop - 2 * layerOffset - 7.5 * scale,
           );
           final layout = KartyCardLayout(
