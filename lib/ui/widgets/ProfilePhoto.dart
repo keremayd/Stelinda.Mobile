@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:stelinda/ui/app_typography.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stelinda/Utils/AppNotifier.dart';
 import 'package:stelinda/services/FileService.dart';
@@ -93,12 +94,14 @@ class _ProfilePhotoWidgetState extends State<ProfilePhotoWidget> {
                 return ClipRRect(
                   borderRadius:
                       BorderRadius.circular(widget.borderRadius ?? 20),
+                  // Fotoğraf yoksa ligdeki satırlar gibi baş harfler: eski
+                  // varsayılan görsel (bir memoji) kullanıcıyı temsil
+                  // etmiyordu (kullanıcı, 23 Kas 2026).
                   child: photoPath == null || photoPath.isEmpty
-                      ? Image.asset(
-                          'assets/icons/profilephoto.png',
+                      ? _Initials(
+                          user: userProvider.user,
                           width: photoWidth,
                           height: photoHeight,
-                          fit: BoxFit.cover,
                         )
                       : Image.file(
                           File(photoPath),
@@ -153,6 +156,55 @@ class _ProfilePhotoWidgetState extends State<ProfilePhotoWidget> {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Fotoğrafı olmayan kullanıcının baş harfleri: ligdeki satırların
+/// (`_RowAvatar`) renkleri ve oranı.
+class _Initials extends StatelessWidget {
+  const _Initials({
+    required this.user,
+    required this.width,
+    required this.height,
+  });
+
+  final User? user;
+  final double width;
+  final double height;
+
+  String get _letters {
+    final full = [user?.firstName, user?.lastName]
+        .whereType<String>()
+        .where((part) => part.trim().isNotEmpty)
+        .join(' ');
+    final name = full.isNotEmpty
+        ? full
+        : (user?.displayName?.trim().isNotEmpty ?? false)
+            ? user!.displayName!
+            : (user?.userName ?? '');
+    final parts =
+        name.split(' ').where((part) => part.isNotEmpty).take(2).toList();
+    if (parts.isEmpty) return '?';
+    return parts.map((part) => part[0].toUpperCase()).join();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      color: const Color(0xFFE3EAF1),
+      alignment: Alignment.center,
+      child: Text(
+        _letters,
+        style: TextStyle(
+          color: const Color(0xFF35424E),
+          fontSize: width / 3,
+          fontWeight: AppTypography.label,
+          fontFamily: AppTypography.family,
+        ),
+      ),
     );
   }
 }
