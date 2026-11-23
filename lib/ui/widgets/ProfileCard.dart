@@ -1,6 +1,7 @@
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
-import 'package:stelinda/ui/widgets/Buttons/app_button_style.dart';
+import 'package:stelinda/l10n/l10n.dart';
+import 'package:stelinda/ui/widgets/Buttons/app_icon_control_button.dart';
 import 'dart:ui' as ui;
 
 import 'package:dio/dio.dart';
@@ -78,9 +79,16 @@ class ProfileCard extends StatelessWidget {
                   Positioned(
                     top: 30 * scale,
                     right: 38 * scale,
-                    child: GestureDetector(
-                      onTap: () => _openSettings(context),
-                      child: _SettingsButton(scale: scale),
+                    // Uygulamanın öbür ikon düğmeleri gibi basınca çöker.
+                    child: AppIconControlButton(
+                      scale: scale,
+                      label: context.l10n.settingsTitle,
+                      onPressed: () => _openSettings(context),
+                      child: Icon(
+                        Icons.settings,
+                        color: Colors.white,
+                        size: 47 * scale,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -187,78 +195,6 @@ class ProfileCard extends StatelessWidget {
           await AuthService(Dio()).endDeletedAccount(context);
         }
     }
-  }
-}
-
-class _SettingsButton extends StatelessWidget {
-  const _SettingsButton({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final geometry = AppButtonStyle.resolve(
-      width: 76 * scale,
-      totalHeight: 82 * scale,
-      legacyRadius: 20 * scale,
-      legacyDepth: 7 * scale,
-    );
-    final radius = BorderRadius.circular(geometry.radius);
-
-    return SizedBox(
-      width: 76 * scale,
-      height: 82 * scale,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            top: geometry.depth,
-            bottom: 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: const Color(0xFF0B2143),
-                borderRadius: radius,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: geometry.depth,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF041227),
-                borderRadius: radius,
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Icon(
-                      Icons.settings,
-                      color: Colors.white,
-                      size: 47 * scale,
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: _NoTopBorderPainter(
-                          color: const Color(0xFF0B2143),
-                          strokeWidth: AppShapeStyle.outline(2 * scale),
-                          radius: geometry.radius,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

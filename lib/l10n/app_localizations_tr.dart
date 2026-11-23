@@ -173,4 +173,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get passwordHelpClose => 'Kapat';
+
+  @override
+  String get settingsTitle => 'Ayarlar';
 }

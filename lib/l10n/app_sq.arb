@@ -50,5 +50,6 @@
   "passwordHelpWrite": "SHKRUAJI MBËSHTETJES",
   "passwordHelpMailSubject": "Rivendosja e fjalëkalimit",
   "passwordHelpCopied": "Aplikacioni i email-it nuk u hap; adresa u kopjua.",
-  "passwordHelpClose": "Mbyll"
+  "passwordHelpClose": "Mbyll",
+  "settingsTitle": "Cilësimet"
 }

@@ -174,4 +174,7 @@ class AppLocalizationsSq extends AppLocalizations {
 
   @override
   String get passwordHelpClose => 'Mbyll';
+
+  @override
+  String get settingsTitle => 'Cilësimet';
 }
