@@ -1236,6 +1236,7 @@ class _TicketCounter extends StatelessWidget {
                 scale: scale,
                 count: shown.clamp(0, 9999),
                 max: maxLives,
+                unlimited: provider.scoreWithLives?.isPremium ?? false,
                 ticketWidth: ticketWidth,
                 numberSize: 40,
                 iconKey: iconKey,

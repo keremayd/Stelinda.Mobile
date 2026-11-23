@@ -1,4 +1,5 @@
 import 'package:stelinda/l10n/l10n.dart';
+import 'package:stelinda/ui/widgets/premium_ticket_mark.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/ui/app_typography.dart';
 
@@ -48,7 +49,8 @@ class TicketBalance extends StatelessWidget {
   /// yükselir. Ana ekranda bedel yolda yazmadığı için harcamayı bu söylüyor.
   final bool rolling;
 
-  /// Premium üye: sayı yerine ∞, tavan yazılmaz.
+  /// Premium üye: altın bilet ve sayı yerine premium bilet; biletin kendisi
+  /// ∞ taşıdığı için sayı yazılmaz (kullanıcı kararı, 23 Kas 2026).
   final bool unlimited;
 
   /// Kalınlık bandı: §2.6 `yildiz` taşının koyusu, ödül biletlerinin
@@ -67,6 +69,14 @@ class TicketBalance extends StatelessWidget {
       fontWeight: AppTypography.number,
       height: 1,
     );
+
+    if (unlimited) {
+      // Uçan biletler (görev ödülü) yine biletin kendisine iner.
+      return Semantics(
+        label: context.l10n.ticketsUnlimited,
+        child: PremiumTicketMark(key: iconKey, width: width),
+      );
+    }
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -110,15 +120,11 @@ class TicketBalance extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            if (unlimited)
-              Text('∞',
-                  style: number,
-                  semanticsLabel: context.l10n.ticketsUnlimited)
-            else if (rolling)
+            if (rolling)
               _RollingCount(value: count, style: number)
             else
               Text('$count', style: number),
-            if (max > 0 && !unlimited)
+            if (max > 0)
               Text(
                 '/$max',
                 style: TextStyle(

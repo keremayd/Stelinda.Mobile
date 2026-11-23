@@ -12,7 +12,7 @@ void main() {
   setUpAll(loadPreviewFonts);
 
   testWidgets('ust serit', (tester) async {
-    const size = Size(750, 300);
+    const size = Size(750, 420);
     await tester.binding.setSurfaceSize(size);
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
@@ -44,6 +44,16 @@ void main() {
                     playedToday: false,
                     tickets: 8,
                     maxTickets: 15,
+                  ),
+                  SizedBox(height: 40),
+                  // Premium üye: altın bilet ve sayı yerine premium bilet.
+                  HomeTopBar(
+                    scale: 1,
+                    streakDays: 6,
+                    playedToday: true,
+                    tickets: 15,
+                    maxTickets: 15,
+                    ticketsUnlimited: true,
                   ),
                 ],
               ),
