@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/widgets/premium_ticket_mark.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +13,7 @@ import 'package:stelinda/ui/app_typography.dart';
 /// Ölçüler biletin enine ve sayının boyuna oranlı; Görevler'de bilet 84,
 /// sayı 40 (670 ölçeği). Ana ekranda sayı şeritteki seri sayısıyla aynı
 /// boyda, bilet ve kesir aynı oranlarla ona göre.
-class TicketBalance extends StatelessWidget {
+class TicketBalance extends StatefulWidget {
   const TicketBalance({
     super.key,
     required this.scale,
@@ -22,6 +24,7 @@ class TicketBalance extends StatelessWidget {
     this.iconKey,
     this.rolling = false,
     this.unlimited = false,
+    this.onTap,
   });
 
   final double scale;
@@ -53,32 +56,111 @@ class TicketBalance extends StatelessWidget {
   /// ∞ taşıdığı için sayı yazılmaz (kullanıcı kararı, 23 Kas 2026).
   final bool unlimited;
 
+  /// Verilirse bilet basılabilir (bilet penceresini açar): öbür düğmeler gibi
+  /// yüzü kalınlık bandına çöker (§2.4), sayı yerinde kalır (kullanıcı,
+  /// 23 Kas 2026).
+  final VoidCallback? onTap;
+
   /// Kalınlık bandı: §2.6 `yildiz` taşının koyusu, ödül biletlerinin
   /// sönük tonu (§5 "Sönükten parlağa").
   static const _band = Color(0xFFB87E00);
   static const _muted = Color(0xFF8FA0B5);
 
   @override
+  State<TicketBalance> createState() => _TicketBalanceState();
+}
+
+class _TicketBalanceState extends State<TicketBalance> {
+  /// Kaydırılan listede dokunuş aynı karede bitebiliyor; çökme en az bu
+  /// kadar görünür (§2.4, `_ClaimButton`).
+  static const _minPress = Duration(milliseconds: 120);
+
+  bool _pressed = false;
+  DateTime? _pressedAt;
+  Timer? _release;
+
+  void _press() {
+    _release?.cancel();
+    _pressedAt = DateTime.now();
+    setState(() => _pressed = true);
+  }
+
+  void _unpress() {
+    final held = DateTime.now().difference(_pressedAt ?? DateTime.now());
+    final wait = _minPress - held;
+    _release?.cancel();
+    if (wait <= Duration.zero) {
+      if (mounted) setState(() => _pressed = false);
+    } else {
+      _release = Timer(wait, () {
+        if (mounted) setState(() => _pressed = false);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _release?.cancel();
+    super.dispose();
+  }
+
+  Widget _tappable(Widget child) {
+    final onTap = widget.onTap;
+    if (onTap == null) return child;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _press(),
+      onTapUp: (_) {
+        _unpress();
+        onTap();
+      },
+      onTapCancel: _unpress,
+      child: child,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final width = ticketWidth * scale;
-    final depth = ticketWidth * 6 / 84 * scale;
+    final scale = widget.scale;
+    final width = widget.ticketWidth * scale;
+    final depth = widget.ticketWidth * 6 / 84 * scale;
+    // Çökme: bant (alt katman) 60 ms'de söner, yüz 80 ms'de banda iner;
+    // gölge yüzden önce kaybolur, hareket "oturma" gibi okunur (§2.4).
+    const fade = Duration(milliseconds: 60);
+    const sink = Duration(milliseconds: 80);
+    final faceTop = _pressed ? depth : 0.0;
     final number = TextStyle(
       color: Colors.white,
       fontFamily: AppTypography.family,
-      fontSize: numberSize * scale,
+      fontSize: widget.numberSize * scale,
       fontWeight: AppTypography.number,
       height: 1,
     );
 
-    if (unlimited) {
+    if (widget.unlimited) {
       // Uçan biletler (görev ödülü) yine biletin kendisine iner.
-      return Semantics(
+      return _tappable(Semantics(
         label: context.l10n.ticketsUnlimited,
-        child: PremiumTicketMark(key: iconKey, width: width),
-      );
+        button: widget.onTap != null,
+        child: SizedBox(
+          width: width,
+          height: width / PremiumTicketMark.aspectRatio + depth,
+          child: Stack(
+            children: [
+              AnimatedPositioned(
+                duration: sink,
+                curve: Curves.easeOut,
+                left: 0,
+                top: faceTop,
+                child: PremiumTicketMark(key: widget.iconKey, width: width),
+              ),
+            ],
+          ),
+        ),
+      ));
     }
 
-    return Row(
+    return _tappable(Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         // Kalınlık bandı (§2.5): biletin kendi silüeti, koyu altınla biraz
@@ -93,20 +175,26 @@ class TicketBalance extends StatelessWidget {
               Positioned(
                 left: 0,
                 top: depth,
-                child: Image.asset(
-                  'assets/icons/ticket.png',
-                  width: width,
-                  fit: BoxFit.contain,
-                  color: _band,
-                  colorBlendMode: BlendMode.srcIn,
+                child: AnimatedOpacity(
+                  duration: fade,
+                  opacity: _pressed ? 0 : 1,
+                  child: Image.asset(
+                    'assets/icons/ticket.png',
+                    width: width,
+                    fit: BoxFit.contain,
+                    color: TicketBalance._band,
+                    colorBlendMode: BlendMode.srcIn,
+                  ),
                 ),
               ),
-              Positioned(
+              AnimatedPositioned(
+                duration: sink,
+                curve: Curves.easeOut,
                 left: 0,
-                top: 0,
+                top: faceTop,
                 child: Image.asset(
                   'assets/icons/ticket.png',
-                  key: iconKey,
+                  key: widget.iconKey,
                   width: width,
                   fit: BoxFit.contain,
                 ),
@@ -114,23 +202,23 @@ class TicketBalance extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(width: ticketWidth * 10 / 84 * scale),
+        SizedBox(width: widget.ticketWidth * 10 / 84 * scale),
         Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            if (rolling)
-              _RollingCount(value: count, style: number)
+            if (widget.rolling)
+              _RollingCount(value: widget.count, style: number)
             else
-              Text('$count', style: number),
-            if (max > 0)
+              Text('${widget.count}', style: number),
+            if (widget.max > 0)
               Text(
-                '/$max',
+                '/${widget.max}',
                 style: TextStyle(
-                  color: _muted,
+                  color: TicketBalance._muted,
                   fontFamily: AppTypography.family,
-                  fontSize: numberSize * 0.6 * scale,
+                  fontSize: widget.numberSize * 0.6 * scale,
                   fontWeight: AppTypography.caption,
                   height: 1,
                 ),
@@ -138,7 +226,7 @@ class TicketBalance extends StatelessWidget {
           ],
         ),
       ],
-    );
+    ));
   }
 }
 

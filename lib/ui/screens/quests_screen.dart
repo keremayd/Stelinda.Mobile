@@ -11,6 +11,7 @@ import 'package:stelinda/models/responses/DailyQuestsResponse.dart';
 import 'package:stelinda/providers/QuestsProvider.dart';
 import 'package:stelinda/providers/ScoreWithLivesProvider.dart';
 import 'package:stelinda/services/UserService.dart';
+import 'package:stelinda/ui/flows/ticketed_game_flow.dart';
 import 'package:stelinda/ui/widgets/Buttons/depth_pressable_button.dart';
 import 'package:stelinda/ui/widgets/clock_mark.dart';
 import 'package:stelinda/ui/widgets/hop_motion.dart';
@@ -362,6 +363,17 @@ class _QuestsScreenState extends State<QuestsScreen>
     );
   }
 
+  /// Başlıktaki bilete dokununca ana ekrandaki bilet penceresi açılır.
+  /// Görevler'e gitme yolu zaten bu ekran: pencere kapanınca görevler önde.
+  void _openTicketStatus() {
+    unawaited(showTicketStatus(
+      context,
+      onGoToReview: () =>
+          unawaited(Navigator.of(context).pushNamed('/kartyreview')),
+      onGoToQuests: () {},
+    ));
+  }
+
   Widget _buildBody() {
     return Builder(
       builder: (context) {
@@ -409,6 +421,7 @@ class _QuestsScreenState extends State<QuestsScreen>
                         pendingTickets: _pendingTickets,
                         fly: _flyController,
                         flyingCount: _flyingCount,
+                        onTicketsTap: _openTicketStatus,
                       ),
                       if (quests.isNotEmpty) ...[
                         SizedBox(height: 22 * scale),
@@ -563,9 +576,11 @@ class _QuestsTopBar extends StatelessWidget {
     required this.pendingTickets,
     required this.fly,
     required this.flyingCount,
+    required this.onTicketsTap,
   });
 
   final double scale;
+  final VoidCallback onTicketsTap;
   final GlobalKey iconKey;
   final int pendingTickets;
   final Animation<double> fly;
@@ -603,6 +618,7 @@ class _QuestsTopBar extends StatelessWidget {
           iconKey: iconKey,
           fly: fly,
           flyingCount: flyingCount,
+          onTap: onTicketsTap,
         ),
       ],
     );
@@ -1187,9 +1203,13 @@ class _TicketCounter extends StatelessWidget {
     required this.iconKey,
     required this.fly,
     required this.flyingCount,
+    required this.onTap,
   });
 
   final double scale;
+
+  /// Ana ekrandaki gibi bilet penceresini açar; bilet basınca çöker.
+  final VoidCallback onTap;
 
   /// Biletin eni (tasarım birimi).
   final double ticketWidth;
@@ -1240,6 +1260,7 @@ class _TicketCounter extends StatelessWidget {
                 ticketWidth: ticketWidth,
                 numberSize: 40,
                 iconKey: iconKey,
+                onTap: onTap,
               ),
             );
           },

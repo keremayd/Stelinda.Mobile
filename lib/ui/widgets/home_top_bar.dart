@@ -100,20 +100,18 @@ class HomeTopBar extends StatelessWidget {
             ],
           ),
         ),
-        _tappable(
+        // Görevler'deki oranlar (bilet 84 : sayı 40) şeridin sayı boyuna
+        // göre: bilet 80. Dokunuşu bilet kendisi yönetir: basınca çöker.
+        TicketBalance(
+          scale: scale,
+          count: tickets,
+          max: maxTickets,
+          unlimited: ticketsUnlimited,
+          ticketWidth: 80,
+          numberSize: _numberSize,
+          iconKey: ticketIconKey,
+          rolling: true,
           onTap: onTicketsTap,
-          // Görevler'deki oranlar (bilet 84 : sayı 40) şeridin sayı boyuna
-          // göre: bilet 80.
-          child: TicketBalance(
-            scale: scale,
-            count: tickets,
-            max: maxTickets,
-            unlimited: ticketsUnlimited,
-            ticketWidth: 80,
-            numberSize: _numberSize,
-            iconKey: ticketIconKey,
-            rolling: true,
-          ),
         ),
       ],
     );

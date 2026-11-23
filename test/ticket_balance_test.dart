@@ -39,4 +39,62 @@ void main() {
     expect(find.text('8'), findsOneWidget);
     expect(find.text('/15'), findsOneWidget);
   });
+
+  testWidgets('dokununca bilet çöker ve pencereyi açar', (tester) async {
+    var taps = 0;
+    final key = GlobalKey();
+    await tester.pumpWidget(host(Center(
+      child: TicketBalance(
+        scale: 1,
+        count: 8,
+        max: 15,
+        ticketWidth: 84,
+        numberSize: 40,
+        iconKey: key,
+        onTap: () => taps++,
+      ),
+    )));
+    double faceTop() => tester.getTopLeft(find.byKey(key)).dy;
+    final rest = faceTop();
+
+    final gesture =
+        await tester.startGesture(tester.getCenter(find.byKey(key)));
+    // İlk kare animasyonu başlatır, ikincisi ilerletir.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    // Yüz kalınlık bandı kadar (6/84 × en) aşağı iner.
+    expect(faceTop() - rest, closeTo(6, 0.01));
+    await gesture.up();
+    await tester.pump();
+    expect(taps, 1);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(faceTop(), closeTo(rest, 0.01));
+  });
+
+  testWidgets('premium bilet de basınca çöker', (tester) async {
+    var taps = 0;
+    final key = GlobalKey();
+    await tester.pumpWidget(host(Center(
+      child: TicketBalance(
+        scale: 1,
+        count: 15,
+        max: 15,
+        ticketWidth: 84,
+        numberSize: 40,
+        unlimited: true,
+        iconKey: key,
+        onTap: () => taps++,
+      ),
+    )));
+    final rest = tester.getTopLeft(find.byKey(key)).dy;
+    final gesture =
+        await tester.startGesture(tester.getCenter(find.byKey(key)));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.getTopLeft(find.byKey(key)).dy - rest, closeTo(6, 0.01));
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(taps, 1);
+  });
 }
