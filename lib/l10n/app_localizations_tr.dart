@@ -176,4 +176,13 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Ayarlar';
+
+  @override
+  String get profilePhotoChange => 'Profil fotoğrafını değiştir';
+
+  @override
+  String get profilePhotoUpdated => 'Profil fotoğrafı güncellendi.';
+
+  @override
+  String get profilePhotoFailed => 'Fotoğraf yüklenemedi. Tekrar dene.';
 }

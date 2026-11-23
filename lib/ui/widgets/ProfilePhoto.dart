@@ -1,15 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stelinda/Utils/AppNotifier.dart';
 import 'package:stelinda/services/FileService.dart';
+import 'package:stelinda/ui/widgets/Buttons/depth_pressable_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/User.dart';
 import '../../providers/UserProvider.dart';
 import '../../services/UserService.dart';
 
+/// Kullanıcının fotoğrafı; yoksa baş harfleri. Düzenlenebilirse (profil
+/// kartı) köşesinde kamera düğmesi var, fotoğrafın kendisine dokunmak da
+/// galeriyi açar.
 class ProfilePhotoWidget extends StatefulWidget {
   final double? width;
   final double? height;
@@ -31,7 +36,9 @@ class ProfilePhotoWidget extends StatefulWidget {
 class _ProfilePhotoWidgetState extends State<ProfilePhotoWidget> {
   late UserService _userService;
   late LocalFileService _localFileService;
-  late User? _user;
+  bool _uploading = false;
+
+  bool get _editable => widget.editable ?? true;
 
   @override
   void initState() {
@@ -39,121 +46,128 @@ class _ProfilePhotoWidgetState extends State<ProfilePhotoWidget> {
 
     _userService = Provider.of<UserService>(context, listen: false);
     _localFileService = Provider.of<LocalFileService>(context, listen: false);
-    _user = Provider.of<UserProvider>(context, listen: false).user;
   }
 
   Future<void> _pickImageAndUpload() async {
-    final picker = ImagePicker();
-    // Konum gibi üst veriler gerekmiyor; böylece iOS fotoğraf erişimi izni
-    // sormaz, seçici yalnız seçilen fotoğrafı verir.
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      requestFullMetadata: false,
-    );
-
-    if (pickedFile == null) return;
-
-    final response =
-        await _userService.updateProfilePhotoById(File(pickedFile.path));
-    if (response.errorCode != null) {
-      AppNotifier.showMessage("Fotoğraf yüklenemedi: ${response.errorCode}");
-
+    if (_uploading) return;
+    final l10n = context.l10n;
+    final XFile? picked;
+    try {
+      // Konum gibi üst veriler gerekmiyor; iOS fotoğraf erişimi izni sormaz,
+      // seçici yalnız seçilen fotoğrafı verir. Sunucu en çok 5 MB alıyor:
+      // fotoğraf yüklenmeden önce küçültülür.
+      picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        requestFullMetadata: false,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+    } catch (_) {
+      AppNotifier.showMessage(l10n.profilePhotoFailed);
       return;
     }
+    if (picked == null || !mounted) return;
 
-    if (!mounted) return;
-    await _localFileService.updateCachedProfilePhoto(
-      response.data!.signedUrl,
-      _user!.userId,
-      context,
-    );
-
-    AppNotifier.showMessage(
-        "Profil fotoğrafı başarıyla güncellendi. ${response.errorCode}",
-        color: Colors.green);
+    final userId = context.read<UserProvider>().user?.userId;
+    setState(() => _uploading = true);
+    try {
+      final response =
+          await _userService.updateProfilePhotoById(File(picked.path));
+      final data = response.data;
+      if (response.errorCode != null || data == null || userId == null) {
+        AppNotifier.showMessage(l10n.profilePhotoFailed);
+        return;
+      }
+      if (!mounted) return;
+      await _localFileService.updateCachedProfilePhoto(
+        data.signedUrl,
+        userId,
+        context,
+      );
+      AppNotifier.showMessage(
+        l10n.profilePhotoUpdated,
+        color: const Color(0xFF93D334),
+      );
+    } catch (_) {
+      AppNotifier.showMessage(l10n.profilePhotoFailed);
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final photoWidth = widget.width ?? 70;
     final photoHeight = widget.height ?? 70;
-    final editButtonSize = (photoWidth * 0.30).clamp(30.0, 46.0).toDouble();
-    final editIconSize = editButtonSize * 0.55;
+    // Köşedeki düğme uygulamanın basılabilir düğmesi: alt katmana çöker.
+    final badge = (photoWidth * 0.36).clamp(30.0, 44.0).toDouble();
+    final depth = badge * 0.14;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Stack(
-          clipBehavior: Clip.none, // Taşmayı mümkün kılar
-          children: [
-            // Profil fotoğrafı
-            Consumer<UserProvider>(
-              builder: (context, userProvider, _) {
-                final photoPath = userProvider.user?.profilePhotoUrl;
+    final photo = Consumer<UserProvider>(
+      builder: (context, userProvider, _) {
+        final photoPath = userProvider.user?.profilePhotoUrl;
 
-                return ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(widget.borderRadius ?? 20),
-                  // Fotoğraf yoksa ligdeki satırlar gibi baş harfler: eski
-                  // varsayılan görsel (bir memoji) kullanıcıyı temsil
-                  // etmiyordu (kullanıcı, 23 Kas 2026).
-                  child: photoPath == null || photoPath.isEmpty
-                      ? _Initials(
-                          user: userProvider.user,
-                          width: photoWidth,
-                          height: photoHeight,
-                        )
-                      : Image.file(
-                          File(photoPath),
-                          width: photoWidth,
-                          height: photoHeight,
-                          fit: BoxFit.cover,
-                          key: ValueKey(DateTime.now()
-                              .toString()), // Unique key forces reload
-                        ),
-                );
-              },
-            ),
-
-            if (widget.editable == null || widget.editable != false)
-              Positioned(
-                bottom: -editButtonSize * 0.10,
-                right: -editButtonSize * 0.12,
-                child: GestureDetector(
-                  onTap: _pickImageAndUpload,
-                  child: Container(
-                    width: editButtonSize,
-                    height: editButtonSize,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF041227),
-                      borderRadius:
-                          BorderRadius.circular(editButtonSize * 0.32),
-                      border: Border.all(
-                        color: const Color(0xFF0C2244),
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.32),
-                          offset: const Offset(0, 5),
-                          blurRadius: 10,
-                        ),
-                        BoxShadow(
-                          color:
-                              const Color(0xFFFFB000).withValues(alpha: 0.18),
-                          blurRadius: 12,
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.photo_camera_rounded,
-                      size: editIconSize,
-                      color: const Color(0xFFF4F5F8),
-                    ),
-                  ),
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(widget.borderRadius ?? 20),
+          // Fotoğraf yoksa ligdeki satırlar gibi baş harfler: eski
+          // varsayılan görsel (bir memoji) kullanıcıyı temsil etmiyordu
+          // (kullanıcı, 23 Kas 2026).
+          child: photoPath == null || photoPath.isEmpty
+              ? _Initials(
+                  user: userProvider.user,
+                  width: photoWidth,
+                  height: photoHeight,
+                )
+              : Image.file(
+                  File(photoPath),
+                  width: photoWidth,
+                  height: photoHeight,
+                  fit: BoxFit.cover,
+                  key: ValueKey('$photoPath#${userProvider.photoVersion}'),
                 ),
-              ),
-          ],
+        );
+      },
+    );
+
+    if (!_editable) return photo;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GestureDetector(onTap: _pickImageAndUpload, child: photo),
+        Positioned(
+          right: -badge * 0.22,
+          bottom: -badge * 0.22,
+          child: Semantics(
+            label: context.l10n.profilePhotoChange,
+            button: true,
+            child: DepthPressableButton(
+              width: badge,
+              height: badge - depth,
+              radius: badge * 0.3,
+              shadowOffset: depth,
+              backgroundColor: const Color(0xFF1CB1F5),
+              shadowColor: const Color(0xFF1B84B5),
+              fontSize: badge * 0.4,
+              enabled: !_uploading,
+              onPressed: _pickImageAndUpload,
+              child: _uploading
+                  ? SizedBox(
+                      width: badge * 0.42,
+                      height: badge * 0.42,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Icon(
+                      Icons.photo_camera_rounded,
+                      size: badge * 0.52,
+                      color: Colors.white,
+                    ),
+            ),
+          ),
         ),
       ],
     );

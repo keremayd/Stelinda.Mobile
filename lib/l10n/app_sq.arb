@@ -51,5 +51,8 @@
   "passwordHelpMailSubject": "Rivendosja e fjalëkalimit",
   "passwordHelpCopied": "Aplikacioni i email-it nuk u hap; adresa u kopjua.",
   "passwordHelpClose": "Mbyll",
-  "settingsTitle": "Cilësimet"
+  "settingsTitle": "Cilësimet",
+  "profilePhotoChange": "Ndrysho foton e profilit",
+  "profilePhotoUpdated": "Fotoja e profilit u përditësua.",
+  "profilePhotoFailed": "Fotoja nuk u ngarkua. Provo përsëri."
 }

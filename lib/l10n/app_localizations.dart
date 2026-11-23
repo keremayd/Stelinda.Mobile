@@ -391,6 +391,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Ayarlar'**
   String get settingsTitle;
+
+  /// No description provided for @profilePhotoChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafını değiştir'**
+  String get profilePhotoChange;
+
+  /// No description provided for @profilePhotoUpdated.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı güncellendi.'**
+  String get profilePhotoUpdated;
+
+  /// No description provided for @profilePhotoFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf yüklenemedi. Tekrar dene.'**
+  String get profilePhotoFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -43,8 +43,14 @@ class UserProvider with ChangeNotifier {
     return false;
   }
 
+  /// Fotoğraf her değişince artar. Yeni fotoğraf aynı dosya adına yazılıyor;
+  /// `Image.file` aynı adı görünce eski resmi göstermeyi sürdürüyordu.
+  int get photoVersion => _photoVersion;
+  int _photoVersion = 0;
+
   Future<void> setProfilePhoto(String profilePhotoUrl) async {
     _user!.profilePhotoUrl = profilePhotoUrl;
+    _photoVersion++;
     notifyListeners();
   }
 

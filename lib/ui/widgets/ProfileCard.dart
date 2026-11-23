@@ -93,11 +93,11 @@ class ProfileCard extends StatelessWidget {
                   ),
                   Positioned(
                     top: 46 * scale,
+                    // Fotoğraf buradan değiştirilir (23 Kas 2026, kullanıcı).
                     child: ProfilePhotoWidget(
                       width: 157 * scale,
                       height: 162 * scale,
                       borderRadius: 28 * scale,
-                      editable: false,
                     ),
                   ),
                   Positioned(

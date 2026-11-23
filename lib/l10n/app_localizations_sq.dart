@@ -177,4 +177,13 @@ class AppLocalizationsSq extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Cilësimet';
+
+  @override
+  String get profilePhotoChange => 'Ndrysho foton e profilit';
+
+  @override
+  String get profilePhotoUpdated => 'Fotoja e profilit u përditësua.';
+
+  @override
+  String get profilePhotoFailed => 'Fotoja nuk u ngarkua. Provo përsëri.';
 }

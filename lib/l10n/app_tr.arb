@@ -91,5 +91,8 @@
   "passwordHelpCopied": "E-posta uygulaması açılamadı; adres kopyalandı.",
   "@passwordHelpCopied": {"description": "E-posta uygulaması açılamayınca adres panoya kopyalanır."},
   "passwordHelpClose": "Kapat",
-  "settingsTitle": "Ayarlar"
+  "settingsTitle": "Ayarlar",
+  "profilePhotoChange": "Profil fotoğrafını değiştir",
+  "profilePhotoUpdated": "Profil fotoğrafı güncellendi.",
+  "profilePhotoFailed": "Fotoğraf yüklenemedi. Tekrar dene."
 }
