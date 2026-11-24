@@ -12,10 +12,11 @@ ScoreWithLivesResponse _$ScoreWithLivesResponseFromJson(
       score: (json['score'] as num).toInt(),
       experience: (json['experience'] as num?)?.toInt() ?? 0,
       lives: (json['lives'] as num).toInt(),
-      maxLives: (json['maxLives'] as num?)?.toInt() ?? 15,
+      maxLives: (json['maxLives'] as num?)?.toInt() ?? 5,
       nextTicketAt: json['nextTicketAt'] == null
           ? null
           : DateTime.parse(json['nextTicketAt'] as String),
+      ticketRegenMinutes: (json['ticketRegenMinutes'] as num?)?.toInt() ?? 0,
       league: json['league'] == null
           ? null
           : LeagueProgressResponse.fromJson(
@@ -42,6 +43,7 @@ Map<String, dynamic> _$ScoreWithLivesResponseToJson(
       'lives': instance.lives,
       'maxLives': instance.maxLives,
       'nextTicketAt': instance.nextTicketAt?.toIso8601String(),
+      'ticketRegenMinutes': instance.ticketRegenMinutes,
       'league': instance.league,
       'streak': instance.streak,
       'longestStreak': instance.longestStreak,

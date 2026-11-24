@@ -144,6 +144,7 @@ Future<void> showTicketStatus(
         balance: score?.lives ?? 0,
         maxBalance: score?.maxLives,
         nextTicketAt: score?.nextTicketAt,
+        regenMinutes: score?.ticketRegenMinutes ?? 0,
         questTickets: questsProvider.data?.quests
             .where((quest) => !quest.isClaimed)
             .fold<int>(0, (total, quest) => total + quest.rewardTickets),

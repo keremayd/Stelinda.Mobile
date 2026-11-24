@@ -71,6 +71,7 @@ class TicketStatus {
     required this.balance,
     this.maxBalance,
     this.nextTicketAt,
+    this.regenMinutes = 0,
     this.questTickets,
     this.reviewAvailable = true,
   });
@@ -78,6 +79,9 @@ class TicketStatus {
   final int balance;
   final int? maxBalance;
   final DateTime? nextTicketAt;
+
+  /// Bir biletin yenilenme süresi, dakika; bilinmiyorsa 0.
+  final int regenMinutes;
   final int? questTickets;
   final bool reviewAvailable;
 }
@@ -105,6 +109,7 @@ Future<void> showTicketStatusPopup(
           balance: status.balance,
           maxBalance: status.maxBalance,
           nextTicketAt: status.nextTicketAt,
+          regenMinutes: status.regenMinutes,
           questTickets: status.questTickets,
           reviewAvailable: status.reviewAvailable,
           onRefreshTickets: onRefreshTickets,
@@ -163,9 +168,14 @@ class OutOfTicketsCard extends StatefulWidget {
     this.reviewAvailable = true,
     this.balance,
     this.maxBalance,
+    this.regenMinutes = 0,
   });
 
   final DateTime? nextTicketAt;
+
+  /// Bir biletin yenilenme süresi, dakika (sunucudan). Tavanda geri sayım
+  /// yerine kural yazılır: "Bilet harcayınca her 4 saatte 1 yenilenir."
+  final int regenMinutes;
 
   /// Verilir ve sıfırdan büyükse kart bilet durumu hâlinde açılır (üst
   /// şeritteki bilete dokununca): büyük bilet, "8/15 bilet", geri sayım.
@@ -239,6 +249,17 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
   bool get _atCap {
     final max = widget.maxBalance;
     return _hasTickets && max != null && widget.balance! >= max;
+  }
+
+  /// Tavandaki satır: biletler dolu, harcayınca ne hızla geri gelir.
+  /// Süre bilinmiyorsa (eski sunucu) yalnız tavan söylenir.
+  String get _capText {
+    final minutes = widget.regenMinutes;
+    if (minutes <= 0) return 'En fazla ${widget.maxBalance} bilet birikir.';
+    final every = minutes % 60 == 0
+        ? '${minutes ~/ 60} saatte'
+        : '$minutes dakikada';
+    return 'Biletlerin dolu. Harcayınca her $every 1 bilet yenilenir.';
   }
 
   @override
@@ -387,9 +408,11 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
                 ),
               ),
             SizedBox(height: 14 * scale),
+            // Tavanda bilet yenilenmez, geri sayım yok; yerine kural:
+            // ne zaman ve ne hızla geleceği (kullanıcı, 24 Kas 2026).
             if (_atCap)
               Text(
-                'En fazla ${widget.maxBalance} bilet birikir.',
+                _capText,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _muted,

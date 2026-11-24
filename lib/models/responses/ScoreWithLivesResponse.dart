@@ -18,11 +18,16 @@ class ScoreWithLivesResponse {
   int lives;
 
   /// Bilet tavanı.
-  @JsonKey(defaultValue: 15)
+  @JsonKey(defaultValue: 5)
   int maxLives;
 
   /// Sıradaki biletin geleceği an; tavandayken null.
   DateTime? nextTicketAt;
+
+  /// Bir biletin yenilenme süresi, dakika. Tavandayken geri sayım yok;
+  /// bilet penceresi kuralı bununla söyler. Eski sunucu göndermez, 0 okunur.
+  @JsonKey(defaultValue: 0)
+  int ticketRegenMinutes;
 
   LeagueProgressResponse? league;
 
@@ -62,6 +67,7 @@ class ScoreWithLivesResponse {
     required this.lives,
     required this.maxLives,
     this.nextTicketAt,
+    this.ticketRegenMinutes = 0,
     this.league,
     this.streak = 0,
     this.longestStreak = 0,
