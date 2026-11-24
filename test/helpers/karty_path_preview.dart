@@ -18,18 +18,6 @@ Widget previewPathHeader(
       maxTickets: 15,
     );
 
-KartyPathStation previewArticleStation({
-  required String detail,
-  VoidCallback? onTap,
-}) =>
-    KartyPathStation(
-      title: 'Artikel',
-      spokenName: 'Artikel Pusulası',
-      icon: (tile) => ArticleDragMark(size: tile * 0.8),
-      detail: detail,
-      onTap: onTap,
-    );
-
 KartyPathStation previewReviewStation({
   required String detail,
   VoidCallback? onTap,
@@ -37,13 +25,13 @@ KartyPathStation previewReviewStation({
     KartyPathStation(
       title: 'Rövanş',
       spokenName: 'Karty Rövanş',
-      icon: (tile) => RevengeCardMark(size: tile * 0.66),
+      icon: (tile) => RevengeCardMark(size: tile * 0.76),
       detail: detail,
       onTap: onTap,
     );
 
-/// İki durak da açık: patikanın kendisine bakan önizlemeler için.
+/// Açık Rövanş durağı (Artikel 24 Kas 2026'dan beri patikada kendi adımı):
+/// patikanın kendisine bakan önizlemeler için.
 KartyPathStations previewStations() => KartyPathStations(
-      article: previewArticleStation(detail: '6 kart', onTap: () {}),
-      review: previewReviewStation(detail: '2 kart', onTap: () {}),
+      review: previewReviewStation(detail: '2 hatanı düzelt', onTap: () {}),
     );

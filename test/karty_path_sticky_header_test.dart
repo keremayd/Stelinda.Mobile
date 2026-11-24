@@ -203,7 +203,8 @@ void main() {
     }
 
     expect(controller.offset, greaterThan(before));
-    final row = tester.getCenter(find.byType(ArticleDragMark));
+    // Şu an satırı: yanındaki Rövanş durağı ekranda.
+    final row = tester.getCenter(find.byType(RevengeCardMark));
     expect(row.dy, inInclusiveRange(0, 560));
   });
 }

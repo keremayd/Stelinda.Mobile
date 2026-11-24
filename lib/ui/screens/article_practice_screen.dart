@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -14,6 +15,7 @@ import 'package:stelinda/ui/widgets/article_practice_locked_state.dart';
 import 'package:stelinda/ui/widgets/article_target.dart';
 import 'package:stelinda/ui/widgets/karty_control_glyphs.dart';
 import 'package:stelinda/ui/widgets/loading_skeleton.dart';
+import 'package:stelinda/ui/widgets/quest_icons.dart';
 import 'package:provider/provider.dart';
 
 class ArticlePracticeScreen extends StatefulWidget {
@@ -137,6 +139,13 @@ class _ArticlePracticeScreenState extends State<ArticlePracticeScreen>
       unawaited(
         profileLearningStatsProvider.refreshFromService(userService),
       );
+      // Patikanın Artikel adımı hedefe vardı: sıradaki kart yerine bitiş.
+      if (provider.stepJustCompleted) {
+        unawaited(preparedNext);
+        _resetCardMotion();
+        provider.finishStep();
+        return;
+      }
       final preparedResult = await preparedNext;
       if (!mounted) return;
       _resetCardMotion();
@@ -252,6 +261,13 @@ class _ArticlePracticeScreenState extends State<ArticlePracticeScreen>
                       ],
                     );
                   }
+                  if (provider.status == ArticlePracticeStatus.stepComplete) {
+                    return _StepCompleteState(
+                      scale: scale,
+                      goal: provider.step?.goal ?? 10,
+                      onClose: () => Navigator.pop(context),
+                    );
+                  }
                   if (provider.status == ArticlePracticeStatus.complete) {
                     return _CompleteState(
                       scale: scale,
@@ -304,6 +320,17 @@ class _ArticlePracticeScreenState extends State<ArticlePracticeScreen>
           child:
               _ExitButton(scale: scale, onClose: () => Navigator.pop(context)),
         ),
+        if (provider.unit != null && provider.step != null)
+          Positioned(
+            left: 160 * scale,
+            right: 48 * scale,
+            top: (42 + 84.75 / 2 - 14) * scale,
+            child: _StepProgressBar(
+              scale: scale,
+              done: provider.step!.correctCount,
+              goal: provider.step!.goal,
+            ),
+          ),
         Positioned(
           left: 95 * scale,
           top: deckTop * scale,
@@ -633,6 +660,115 @@ class _CompleteState extends StatelessWidget {
               backgroundColor: _ArticlePracticeScreenState._success,
               shadowColor: _ArticlePracticeScreenState._successBase,
               fontSize: 25 * scale,
+              fontWeight: AppTypography.action,
+              onPressed: onClose,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Artikel adımının ilerlemesi: oyunun tepesinde, patikadaki halkanın
+/// karşılığı. Turda doğru bilinen artikel kadar dolar.
+class _StepProgressBar extends StatelessWidget {
+  const _StepProgressBar({
+    required this.scale,
+    required this.done,
+    required this.goal,
+  });
+
+  final double scale;
+  final int done;
+  final int goal;
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = goal <= 0 ? 0.0 : (done / goal).clamp(0.0, 1.0);
+    final height = 28 * scale;
+    return Semantics(
+      label: context.l10n.pathArticleProgress(done, goal),
+      excludeSemantics: true,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: const Color(0xFF163258),
+          borderRadius: BorderRadius.circular(height / 2),
+        ),
+        alignment: Alignment.centerLeft,
+        child: AnimatedFractionallySizedBox(
+          duration: const Duration(milliseconds: 360),
+          curve: Curves.easeOutCubic,
+          widthFactor: ratio == 0 ? 0.0001 : ratio,
+          heightFactor: 1,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: _ArticlePracticeScreenState._der,
+              borderRadius: BorderRadius.circular(height / 2),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Artikel adımının turu bitti: patikaya dönülür, düğüm onaylanır.
+class _StepCompleteState extends StatelessWidget {
+  const _StepCompleteState({
+    required this.scale,
+    required this.goal,
+    required this.onClose,
+  });
+
+  final double scale;
+  final int goal;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 54 * scale),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            QuestCheckMark(size: 150 * scale),
+            SizedBox(height: 34 * scale),
+            Text(
+              l10n.articleStepDoneTitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 52 * scale,
+                fontWeight: AppTypography.heading,
+                fontFamily: AppTypography.displayFamily,
+              ),
+            ),
+            SizedBox(height: 12 * scale),
+            Text(
+              l10n.articleStepDoneBody(goal),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: const Color(0xFF8FA0B5),
+                fontSize: 28 * scale,
+                fontWeight: AppTypography.body,
+                fontFamily: AppTypography.family,
+                height: 1.3,
+              ),
+            ),
+            SizedBox(height: 48 * scale),
+            DepthPressableButton(
+              text: l10n.articleStepContinue,
+              width: 640 * scale,
+              height: 100 * scale,
+              radius: 26 * scale,
+              shadowOffset: 11 * scale,
+              backgroundColor: _ArticlePracticeScreenState._success,
+              shadowColor: _ArticlePracticeScreenState._successBase,
+              fontSize: 30 * scale,
               fontWeight: AppTypography.action,
               onPressed: onClose,
             ),

@@ -188,6 +188,60 @@ abstract class AppLocalizations {
   /// **'Pekiştirme'**
   String get pathReinforce;
 
+  /// Ünitenin ortasındaki Artikel adımının düğüm adı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Artikel'**
+  String get pathArticle;
+
+  /// Artikel adımının işini söyleyen ikinci satır; açıklama kartında da.
+  ///
+  /// In tr, this message translates to:
+  /// **'der/die/das tekrarı'**
+  String get pathArticleDetail;
+
+  /// Şu anki Artikel adımının ilerlemesi (turda doğru bilinen artikel).
+  ///
+  /// In tr, this message translates to:
+  /// **'{done}/{goal} artikel'**
+  String pathArticleProgress(int done, int goal);
+
+  /// Rövanş durağının ikinci satırı: bekleyen yanlış kart sayısı.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} hatanı düzelt'**
+  String pathReviewStationDetail(int count);
+
+  /// Rövanş durağı, bekleyen yanlış kart yokken.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hatan yok'**
+  String get pathReviewStationEmpty;
+
+  /// No description provided for @introReviewTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş'**
+  String get introReviewTitle;
+
+  /// Artikel adımının turu bitince.
+  ///
+  /// In tr, this message translates to:
+  /// **'Artikel tamam!'**
+  String get articleStepDoneTitle;
+
+  /// No description provided for @articleStepDoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{goal} artikel doğru bilindi. Unutulanlar yeniden sorulur.'**
+  String articleStepDoneBody(int goal);
+
+  /// No description provided for @articleStepContinue.
+  ///
+  /// In tr, this message translates to:
+  /// **'DEVAM ET'**
+  String get articleStepContinue;
+
   /// Kilitli ünitenin başlığında. unitSuffix Türkçe ilgi hâli eki (1'in, 2'nin); başka dil kullanmaz.
   ///
   /// In tr, this message translates to:

@@ -57,6 +57,39 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pathReinforce => 'Pekiştirme';
 
   @override
+  String get pathArticle => 'Artikel';
+
+  @override
+  String get pathArticleDetail => 'der/die/das tekrarı';
+
+  @override
+  String pathArticleProgress(int done, int goal) {
+    return '$done/$goal artikel';
+  }
+
+  @override
+  String pathReviewStationDetail(int count) {
+    return '$count hatanı düzelt';
+  }
+
+  @override
+  String get pathReviewStationEmpty => 'Hatan yok';
+
+  @override
+  String get introReviewTitle => 'Rövanş';
+
+  @override
+  String get articleStepDoneTitle => 'Artikel tamam!';
+
+  @override
+  String articleStepDoneBody(int goal) {
+    return '$goal artikel doğru bilindi. Unutulanlar yeniden sorulur.';
+  }
+
+  @override
+  String get articleStepContinue => 'DEVAM ET';
+
+  @override
   String pathUnlockHint(int unit, String unitSuffix, int percent) {
     return 'Ünite $unit$unitSuffix %$percent\'i pekişince açılır';
   }

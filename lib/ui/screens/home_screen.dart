@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:stelinda/dev_tools.dart';
 import 'package:flutter/material.dart';
+import 'package:stelinda/models/ArticlePractice.dart';
 import 'package:stelinda/models/karty_path.dart';
 import 'package:stelinda/models/karty_session.dart';
 import 'package:stelinda/models/responses/KartyPathResponse.dart';
@@ -58,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Bilet sahnesinin iki ucu: sayaçtan dokunulan karoya.
   final _ticketIconKey = GlobalKey();
   final _currentNodeKey = GlobalKey<TicketTargetState>();
-  final _articleTileKey = GlobalKey<TicketTargetState>();
 
   /// Gelişi süren ünite; patika onu açılmamış gibi çizer.
   int? _arrivalUnit;
@@ -217,7 +217,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// olsun, yükleniyor simgesi görünmesin.
   void _prepareGame(String route, Object? arguments) {
     if (route == '/articlepractice') {
-      context.read<ArticlePracticeProvider>().prepareFirstTask();
+      context.read<ArticlePracticeProvider>()
+        ..configure(unit: (arguments as ArticleStepArgs?)?.unit)
+        ..prepareFirstTask();
       return;
     }
     final session = arguments as KartySessionArgs?;
@@ -427,46 +429,63 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return _data!;
   }
 
+  /// Şu anki düğümün yanındaki durak: yalnız Rövanş. Artikel 24 Kas 2026'dan
+  /// beri patikada kendi adımı (`KartyStep.article`), yan durak kalktı.
   KartyPathStations _stations(ProfileLearningStatsResponse? stats) {
-    final learned = stats?.learnedWordCount ?? 0;
-    final articles = stats == null ? 0 : learned - stats.learnedArticleCount;
-    final articleOpen = learned >= 2 && articles > 0;
+    final l10n = context.l10n;
     final reviews = stats?.reviewPendingCount;
 
     return KartyPathStations(
-      article: KartyPathStation(
-        title: 'Artikel',
-        spokenName: 'Artikel Pusulası',
-        icon: (tile) => ArticleDragMark(size: tile * 0.8),
-        detail: stats == null
-            ? ''
-            : articleOpen
-                ? '$articles kart'
-                : learned < 2
-                    ? '${2 - learned} kelime öğren'
-                    : 'Yeni kelime öğren',
-        onTap: articleOpen
-            ? () => unawaited(
-                  _startTicketed('/articlepractice', tile: _articleTileKey),
-                )
-            : null,
-        tileKey: _articleTileKey,
-      ),
       // Rövanş bilet harcamaz; yanlışları tekrar ederek oyuna dönüş yolu açar.
       review: KartyPathStation(
-        title: 'Rövanş',
+        title: l10n.introReviewTitle,
         spokenName: 'Karty Rövanş',
-        icon: (tile) => RevengeCardMark(size: tile * 0.66),
+        icon: (tile) => RevengeCardMark(size: tile * 0.76),
         detail: reviews == null
             ? ''
             : reviews > 0
-                ? '$reviews kart'
-                : 'Hatan yok',
-        onTap: (reviews ?? 0) > 0
-            ? () => unawaited(_openGame('/kartyreview'))
-            : null,
+                ? l10n.pathReviewStationDetail(reviews)
+                : l10n.pathReviewStationEmpty,
+        onTap: (reviews ?? 0) > 0 ? () => unawaited(_openReview()) : null,
       ),
     );
+  }
+
+  Future<void> _openReview() async {
+    if (_starting || _gameOpen) return;
+    await _openGame('/kartyreview');
+  }
+
+  /// Şu anki düğüme dokunuş: o adımın oyunu; Artikel adımıysa Artikel
+  /// oyunu ünitesiyle açılır.
+  Future<void> _continueCurrent() async {
+    if (_starting || _gameOpen) return;
+    final current = _currentStep();
+    if (current != null && current.$2.article) {
+      await _startTicketed(
+        '/articlepractice',
+        arguments: ArticleStepArgs(unit: current.$1.number),
+        tile: _currentNodeKey,
+      );
+      return;
+    }
+    await _startTicketed(
+      '/kartyquiz',
+      arguments: _session(),
+      tile: _currentNodeKey,
+    );
+  }
+
+  /// Şu anki adım ve ünitesi.
+  (KartyUnit, KartyStep)? _currentStep() {
+    final data = _data;
+    if (data == null) return null;
+    for (final unit in data.units) {
+      for (final step in unit.steps) {
+        if (step.state == KartyStepState.current) return (unit, step);
+      }
+    }
+    return null;
   }
 
   Widget _topBar(double scale) => Consumer<ScoreWithLivesProvider>(
@@ -519,13 +538,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       data: data,
       header: _topBar,
       stations: _stations(stats),
-      onContinue: () => unawaited(
-        _startTicketed(
-          '/kartyquiz',
-          arguments: _session(),
-          tile: _currentNodeKey,
-        ),
-      ),
+      onContinue: () => unawaited(_continueCurrent()),
       currentNodeKey: _currentNodeKey,
       hopCurrent: hopCurrent && !_starting,
       onRefresh: () async {

@@ -289,25 +289,20 @@ void main() {
               playedToday: false,
               tickets: 15,
               stations: KartyPathStations(
-                article: previewArticleStation(detail: '2 kelime öğren'),
                 review: previewReviewStation(detail: 'Hatan yok'),
               ),
             ),
           ),
           (
             'Ünitenin ortası',
-            'Deste yarıda; Artikel ve Rövanş açık',
+            'Deste yarıda; Rövanş açık',
             phone(
               midUnit,
               streak: 4,
               playedToday: true,
               tickets: 12,
               stations: KartyPathStations(
-                article: previewArticleStation(
-                  detail: '6 kart',
-                  onTap: open,
-                ),
-                review: previewReviewStation(detail: '2 kart', onTap: open),
+                review: previewReviewStation(detail: '2 hatanı düzelt', onTap: open),
               ),
             ),
           ),
@@ -320,11 +315,7 @@ void main() {
               playedToday: false,
               tickets: 9,
               stations: KartyPathStations(
-                article: previewArticleStation(
-                  detail: '16 kart',
-                  onTap: open,
-                ),
-                review: previewReviewStation(detail: '1 kart', onTap: open),
+                review: previewReviewStation(detail: '1 hatanı düzelt', onTap: open),
               ),
             ),
           ),
@@ -337,11 +328,7 @@ void main() {
               playedToday: false,
               tickets: 9,
               stations: KartyPathStations(
-                article: previewArticleStation(
-                  detail: '16 kart',
-                  onTap: open,
-                ),
-                review: previewReviewStation(detail: '1 kart', onTap: open),
+                review: previewReviewStation(detail: '1 hatanı düzelt', onTap: open),
               ),
               overlay: streakSheet(days: 2, playedToday: false),
             ),

@@ -81,6 +81,7 @@ class _Articles extends Fake implements ArticlePracticeService {
   @override
   Future<ApiResponse<ArticlePracticeLoadResult>> getNextTask({
     int? preferredKartyId,
+    int? unit,
   }) =>
       _never();
 }

@@ -85,6 +85,12 @@ class KartyPathStepDto {
   @JsonKey(defaultValue: false)
   final bool reinforce;
 
+  /// Ünitenin Artikel adımı (24 Kas 2026): destelerin arasında kendi
+  /// düğümü; `learnedCount` turda doğru bilinen artikel, `newGoal` hedef.
+  /// Eski sunucu göndermez, false okunur.
+  @JsonKey(defaultValue: false)
+  final bool article;
+
   KartyPathStepDto({
     required this.state,
     this.deck,
@@ -96,6 +102,7 @@ class KartyPathStepDto {
     required this.words,
     required this.upcomingImageUrls,
     this.reinforce = false,
+    this.article = false,
   });
 
   factory KartyPathStepDto.fromJson(Map<String, dynamic> json) =>

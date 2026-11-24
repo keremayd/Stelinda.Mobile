@@ -68,6 +68,7 @@ KartyPathStepDto _$KartyPathStepDtoFromJson(Map<String, dynamic> json) =>
               .toList() ??
           [],
       reinforce: json['reinforce'] as bool? ?? false,
+      article: json['article'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$KartyPathStepDtoToJson(KartyPathStepDto instance) =>
@@ -82,6 +83,7 @@ Map<String, dynamic> _$KartyPathStepDtoToJson(KartyPathStepDto instance) =>
       'words': instance.words,
       'upcomingImageUrls': instance.upcomingImageUrls,
       'reinforce': instance.reinforce,
+      'article': instance.article,
     };
 
 KartyPathWordDto _$KartyPathWordDtoFromJson(Map<String, dynamic> json) =>

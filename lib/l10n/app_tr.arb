@@ -25,6 +25,28 @@
   "@pathReview": { "description": "Açık bütün desteler bitince patikadaki yalnız tekrar adımı." },
   "pathReinforce": "Pekiştirme",
   "@pathReinforce": { "description": "Ünitenin desteleri bitince şu anki düğüm olan pekiştirme kapısı." },
+  "pathArticle": "Artikel",
+  "@pathArticle": { "description": "Ünitenin ortasındaki Artikel adımının düğüm adı." },
+  "pathArticleDetail": "der/die/das tekrarı",
+  "@pathArticleDetail": { "description": "Artikel adımının işini söyleyen ikinci satır; açıklama kartında da." },
+  "pathArticleProgress": "{done}/{goal} artikel",
+  "@pathArticleProgress": {
+    "description": "Şu anki Artikel adımının ilerlemesi (turda doğru bilinen artikel).",
+    "placeholders": { "done": { "type": "int" }, "goal": { "type": "int" } }
+  },
+  "pathReviewStationDetail": "{count} hatanı düzelt",
+  "@pathReviewStationDetail": {
+    "description": "Rövanş durağının ikinci satırı: bekleyen yanlış kart sayısı.",
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "pathReviewStationEmpty": "Hatan yok",
+  "@pathReviewStationEmpty": { "description": "Rövanş durağı, bekleyen yanlış kart yokken." },
+  "introReviewTitle": "Rövanş",
+  "articleStepDoneTitle": "Artikel tamam!",
+  "@articleStepDoneTitle": { "description": "Artikel adımının turu bitince." },
+  "articleStepDoneBody": "{goal} artikel doğru bilindi. Unutulanlar yeniden sorulur.",
+  "@articleStepDoneBody": { "placeholders": { "goal": { "type": "int" } } },
+  "articleStepContinue": "DEVAM ET",
   "pathUnlockHint": "Ünite {unit}{unitSuffix} %{percent}'i pekişince açılır",
   "@pathUnlockHint": {
     "description": "Kilitli ünitenin başlığında. unitSuffix Türkçe ilgi hâli eki (1'in, 2'nin); başka dil kullanmaz.",

@@ -86,7 +86,6 @@ void main() {
     expect(gate, findsOneWidget);
     expect(find.text('Pekiştirme'), findsOneWidget);
     expect(find.text('6/24 kelime'), findsOneWidget);
-    expect(find.text('Artikel'), findsOneWidget);
     expect(find.text('Rövanş'), findsOneWidget);
 
     await tester.tap(gate);

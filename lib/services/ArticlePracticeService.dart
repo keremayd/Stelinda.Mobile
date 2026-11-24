@@ -13,13 +13,16 @@ class ArticlePracticeService {
 
   Future<ApiResponse<ArticlePracticeLoadResult>> getNextTask({
     int? preferredKartyId,
+    int? unit,
   }) async {
     final userId = await _storage.read(key: 'userId');
+    final query = {
+      if (preferredKartyId != null) 'preferredKartyId': preferredKartyId,
+      if (unit != null) 'unit': unit,
+    };
     final response = await _dio.get(
       'article-practice/next/$userId',
-      queryParameters: preferredKartyId == null
-          ? null
-          : {'preferredKartyId': preferredKartyId},
+      queryParameters: query.isEmpty ? null : query,
     );
     final apiResponse = ApiResponse<ArticlePracticeLoadResult>.fromJson(
       response.data,
@@ -58,6 +61,7 @@ class ArticlePracticeService {
   Future<ApiResponse<ArticlePracticeAnswer>> answer({
     required int kartyId,
     required String selectedArticle,
+    int? unit,
   }) async {
     final userId = await _storage.read(key: 'userId');
     final response = await _dio.post(
@@ -66,6 +70,7 @@ class ArticlePracticeService {
         'userId': userId,
         'kartyId': kartyId,
         'selectedArticle': selectedArticle,
+        if (unit != null) 'unit': unit,
       },
     );
     return ApiResponse<ArticlePracticeAnswer>.fromJson(

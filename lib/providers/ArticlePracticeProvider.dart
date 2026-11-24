@@ -10,6 +10,9 @@ enum ArticlePracticeStatus {
   correct,
   wrong,
   complete,
+
+  /// Patikanın Artikel adımı hedefe vardı: "Artikel tamam!".
+  stepComplete,
   error,
 }
 
@@ -27,6 +30,31 @@ class ArticlePracticeProvider extends ChangeNotifier {
   int requiredWordCount = 2;
 
   bool get canInteract => status == ArticlePracticeStatus.playing;
+
+  /// Oynanan Artikel adımının ünitesi (sırası); yan duraktan açıldıysa null.
+  int? _unit;
+  int? get unit => _unit;
+
+  /// Artikel adımının ilerlemesi; sunucudan her yanıtta gelir.
+  ArticleStepProgress? step;
+
+  /// Oyunu patikanın bir Artikel adımı için kurar (ya da yan durak için
+  /// sıfırlar). Hazırlanan görevden önce çağrılır.
+  void configure({int? unit}) {
+    _unit = unit;
+    step = null;
+  }
+
+  /// Son doğru cevapla adım hedefe vardı: oyun bitiş ekranına geçer.
+  bool get stepJustCompleted =>
+      _unit != null &&
+      answerResult?.isCorrect == true &&
+      answerResult?.step?.completed == true;
+
+  void finishStep() {
+    status = ArticlePracticeStatus.stepComplete;
+    notifyListeners();
+  }
 
   Future<void>? _preparedLoad;
 
@@ -48,11 +76,12 @@ class ArticlePracticeProvider extends ChangeNotifier {
     answerResult = null;
     notifyListeners();
     try {
-      final response = await _service.getNextTask();
+      final response = await _service.getNextTask(unit: _unit);
       final result = response.data;
       if (response.errorCode != null || result == null) {
         status = ArticlePracticeStatus.error;
       } else {
+        step = result.step ?? step;
         learnedWordCount = result.learnedWordCount;
         requiredWordCount = result.requiredWordCount;
         final playableTask = _playableTask(result.task);
@@ -88,6 +117,7 @@ class ArticlePracticeProvider extends ChangeNotifier {
     try {
       final response = await _service.getNextTask(
         preferredKartyId: prefetched.kartyId,
+        unit: _unit,
       );
       if (response.errorCode != null) return null;
       return response.data;
@@ -99,6 +129,7 @@ class ArticlePracticeProvider extends ChangeNotifier {
   bool applyPrepared(ArticlePracticeLoadResult? result) {
     final preparedTask = _playableTask(result?.task);
     if (result == null || preparedTask == null) return false;
+    step = result.step ?? step;
     learnedWordCount = result.learnedWordCount;
     requiredWordCount = result.requiredWordCount;
     task = preparedTask;
@@ -118,8 +149,10 @@ class ArticlePracticeProvider extends ChangeNotifier {
       final response = await _service.answer(
         kartyId: currentTask.kartyId,
         selectedArticle: article,
+        unit: _unit,
       );
       answerResult = response.data;
+      step = answerResult?.step ?? step;
       if (response.errorCode != null || answerResult?.isAccepted != true) {
         status = ArticlePracticeStatus.error;
       } else {
@@ -141,7 +174,9 @@ class ArticlePracticeProvider extends ChangeNotifier {
   }
 
   ArticlePracticeTask? _playableTask(ArticlePracticeTask? candidate) {
-    if (candidate == null || candidate.isArticleComplete) return null;
+    if (candidate == null) return null;
+    // Artikel adımı artikeli öğrenilmiş kelimeyi de takvimi geldiyse sorar.
+    if (_unit == null && candidate.isArticleComplete) return null;
     return candidate;
   }
 }

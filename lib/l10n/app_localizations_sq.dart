@@ -57,6 +57,39 @@ class AppLocalizationsSq extends AppLocalizations {
   String get pathReinforce => 'Përforcim';
 
   @override
+  String get pathArticle => 'Artikulli';
+
+  @override
+  String get pathArticleDetail => 'përsëritje der/die/das';
+
+  @override
+  String pathArticleProgress(int done, int goal) {
+    return '$done/$goal artikuj';
+  }
+
+  @override
+  String pathReviewStationDetail(int count) {
+    return 'Korrigjo $count gabime';
+  }
+
+  @override
+  String get pathReviewStationEmpty => 'S\'ke gabime';
+
+  @override
+  String get introReviewTitle => 'Revansh';
+
+  @override
+  String get articleStepDoneTitle => 'Artikujt u kryen!';
+
+  @override
+  String articleStepDoneBody(int goal) {
+    return '$goal artikuj u gjetën saktë. Të harruarit pyeten përsëri.';
+  }
+
+  @override
+  String get articleStepContinue => 'VAZHDO';
+
+  @override
   String pathUnlockHint(int unit, String unitSuffix, int percent) {
     return 'Hapet kur përforcohet $percent% e Njësisë $unit';
   }

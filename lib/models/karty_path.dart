@@ -72,15 +72,20 @@ class KartyPathData {
               deck: step.deck,
               label: step.reinforce
                   ? text.pathReinforce
-                  : step.deck == null
-                      ? text.pathReview
-                      : text.pathDeck(step.deck!),
+                  : step.article
+                      ? text.pathArticle
+                      : step.deck == null
+                          ? text.pathReview
+                          : text.pathDeck(step.deck!),
               title: step.reinforce
                   ? text.pathReinforce
-                  : step.deck == null
-                      ? text.pathReview
-                      : text.pathDeck(step.deck!),
+                  : step.article
+                      ? text.pathArticle
+                      : step.deck == null
+                          ? text.pathReview
+                          : text.pathDeck(step.deck!),
               reinforce: step.reinforce,
+              article: step.article,
               newCount: step.newCount,
               learnedCount: step.learnedCount,
               newGoal: step.newGoal,
@@ -233,9 +238,16 @@ class KartyStep {
     this.words = const [],
     this.upcoming = const [],
     this.reinforce = false,
+    this.article = false,
   });
 
   final KartyStepState state;
+
+  /// Ünitenin ortasındaki Artikel adımı (24 Kas 2026, kullanıcı onayı):
+  /// destelerin arasında kendi düğümü var; oyun, artikel tekrarı vadesi
+  /// gelen kelimelerden on kartlık Artikel Pusulası turu. Gerekçe:
+  /// `docs/ARTIKEL_ARASTIRMA.md`.
+  final bool article;
 
   /// Ünitenin pekiştirme adımı: desteler bitti, ünite hedefe ulaşmadı.
   /// Patikada ayrı düğüm yok, ünitenin kapısı şu anki düğüm olur; oyun

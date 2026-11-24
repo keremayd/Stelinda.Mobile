@@ -1,3 +1,11 @@
+/// Artikel oyununun patikadaki adımdan açıldığını söyler: hangi ünitenin
+/// Artikel adımı (sırası).
+class ArticleStepArgs {
+  const ArticleStepArgs({required this.unit});
+
+  final int unit;
+}
+
 class ArticlePracticeTask {
   const ArticlePracticeTask({
     required this.kartyId,
@@ -47,6 +55,29 @@ class ArticlePracticeTask {
   }
 }
 
+/// Patikanın Artikel adımının ilerlemesi (24 Kas 2026): turda doğru
+/// bilinen artikel ve hedef. Tur yarıda bırakılırsa sunucuda kalır.
+class ArticleStepProgress {
+  const ArticleStepProgress({
+    required this.correctCount,
+    required this.goal,
+    required this.completed,
+  });
+
+  final int correctCount;
+  final int goal;
+  final bool completed;
+
+  static ArticleStepProgress? fromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    return ArticleStepProgress(
+      correctCount: json['correctCount'] as int? ?? 0,
+      goal: json['goal'] as int? ?? 10,
+      completed: json['completed'] as bool? ?? false,
+    );
+  }
+}
+
 class ArticlePracticeLoadResult {
   const ArticlePracticeLoadResult({
     required this.isUnlocked,
@@ -54,6 +85,7 @@ class ArticlePracticeLoadResult {
     required this.requiredWordCount,
     this.task,
     this.nextTask,
+    this.step,
   });
 
   final bool isUnlocked;
@@ -61,6 +93,9 @@ class ArticlePracticeLoadResult {
   final int requiredWordCount;
   final ArticlePracticeTask? task;
   final ArticlePracticeTask? nextTask;
+
+  /// İstekte ünite varsa Artikel adımının ilerlemesi.
+  final ArticleStepProgress? step;
 
   factory ArticlePracticeLoadResult.fromJson(Map<String, dynamic> json) {
     final taskJson = json['task'];
@@ -76,6 +111,7 @@ class ArticlePracticeLoadResult {
               json['nextTask'] as Map<String, dynamic>,
             )
           : null,
+      step: ArticleStepProgress.fromJson(json['step']),
     );
   }
 
@@ -89,6 +125,7 @@ class ArticlePracticeLoadResult {
       requiredWordCount: requiredWordCount,
       task: task,
       nextTask: nextTask,
+      step: step,
     );
   }
 }
@@ -100,6 +137,7 @@ class ArticlePracticeAnswer {
     required this.correctArticle,
     required this.articleAttemptCount,
     required this.articleCorrectCount,
+    this.step,
   });
 
   final bool isAccepted;
@@ -108,6 +146,9 @@ class ArticlePracticeAnswer {
   final int articleAttemptCount;
   final int articleCorrectCount;
 
+  /// İstekte ünite varsa Artikel adımının cevaptan sonraki ilerlemesi.
+  final ArticleStepProgress? step;
+
   factory ArticlePracticeAnswer.fromJson(Map<String, dynamic> json) {
     return ArticlePracticeAnswer(
       isAccepted: json['isAccepted'] as bool? ?? false,
@@ -115,6 +156,7 @@ class ArticlePracticeAnswer {
       correctArticle: json['correctArticle'] as String? ?? '',
       articleAttemptCount: json['articleAttemptCount'] as int? ?? 0,
       articleCorrectCount: json['articleCorrectCount'] as int? ?? 0,
+      step: ArticleStepProgress.fromJson(json['step']),
     );
   }
 }

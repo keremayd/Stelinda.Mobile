@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stelinda/models/ArticlePractice.dart';
 import 'package:stelinda/models/ApiResponse.dart';
 import 'package:stelinda/models/karty_session.dart';
 import 'package:stelinda/models/responses/DailyActivityResponse.dart';
@@ -65,7 +66,11 @@ ProfileLearningStatsResponse _stats({
       'longestStreak': 5,
     });
 
-KartyPathResponse _path({int? pendingUnlock}) => KartyPathResponse.fromJson({
+/// Ünite 1: Deste 1 bitti, Artikel adımı (iki desteli ünitede Deste 1'den
+/// sonra), Deste 2. [articleCurrent] ise Artikel şu anki adım (4/10),
+/// değilse bitmiş ve Deste 2 şu anki.
+KartyPathResponse _path({int? pendingUnlock, bool articleCurrent = false}) =>
+    KartyPathResponse.fromJson({
       'deckSize': 8,
       'pendingUnlockSequence': pendingUnlock,
       'units': [
@@ -89,12 +94,23 @@ KartyPathResponse _path({int? pendingUnlock}) => KartyPathResponse.fromJson({
               'upcomingImageUrls': <String>[],
             },
             {
-              'state': 'current',
+              'state': articleCurrent ? 'current' : 'done',
+              'article': true,
+              'newCount': 0,
+              'learnedCount': articleCurrent ? 4 : 10,
+              'newGoal': 10,
+              'reviewCount': 0,
+              'dueCount': 0,
+              'words': <dynamic>[],
+              'upcomingImageUrls': <String>[],
+            },
+            {
+              'state': articleCurrent ? 'upcoming' : 'current',
               'deck': 2,
-              'newCount': 3,
-              'learnedCount': 2,
+              'newCount': articleCurrent ? 0 : 3,
+              'learnedCount': articleCurrent ? 0 : 2,
               'newGoal': 8,
-              'reviewCount': 5,
+              'reviewCount': articleCurrent ? 0 : 5,
               'dueCount': 0,
               'words': <dynamic>[],
               'upcomingImageUrls': <String>[],
@@ -178,6 +194,13 @@ class _Articles extends ArticlePracticeProvider {
   _Articles() : super(_ArticleService());
 
   int prepared = 0;
+  int? configuredUnit;
+
+  @override
+  void configure({int? unit}) {
+    configuredUnit = unit;
+    super.configure(unit: unit);
+  }
 
   @override
   void prepareFirstTask() => prepared += 1;
@@ -239,6 +262,7 @@ Future<_Home> _pump(
   WidgetTester tester, {
   bool played = true,
   ProfileLearningStatsResponse? stats,
+  KartyPathResponse? path,
 }) async {
   tester.view.physicalSize = const Size(430, 932);
   tester.view.devicePixelRatio = 1;
@@ -247,6 +271,7 @@ Future<_Home> _pump(
   final scoreProvider = ScoreWithLivesProvider();
   final user = _User(scoreProvider, _score(played: played), stats ?? _stats());
   final karty = _Karty();
+  if (path != null) karty.response = path;
   final home = _Home(user, karty);
 
   Widget game(String route) => Builder(
@@ -304,35 +329,37 @@ const _counterTickets = 2;
 void main() {
   setUpAll(loadPreviewFonts);
 
-  testWidgets('duraklar istatistikten beslenir', (tester) async {
+  testWidgets('yanda yalnız Rövanş; ikinci satırlar işini söyler',
+      (tester) async {
     await _pump(tester);
+    // Artikel yan durağı yok (24 Kas 2026): Artikel patikada kendi adımı.
+    expect(find.byType(ArticleDragMark), findsNothing);
     expect(find.text('Artikel'), findsOneWidget);
-    expect(find.text('8 kart'), findsOneWidget);
+    expect(find.text('der/die/das tekrarı'), findsOneWidget);
     expect(find.text('Rövanş'), findsOneWidget);
-    expect(find.text('6 kart'), findsOneWidget);
+    expect(find.text('6 hatanı düzelt'), findsOneWidget);
     // Etiket tanışılanı (3) değil doğru bilineni (2) sayar: deste onunla biter.
     expect(find.text('2/8 yeni · 5 tekrar'), findsOneWidget);
   });
 
-  testWidgets('kapalı durak nedenini yazar ve açılmaz', (tester) async {
+  testWidgets('kapalı Rövanş nedenini yazar ve açılmaz', (tester) async {
     final home = await _pump(
       tester,
       stats: _stats(learned: 1, articles: 0, reviews: 0),
     );
-    expect(find.text('1 kelime öğren'), findsOneWidget);
     expect(find.text('Hatan yok'), findsOneWidget);
 
-    await tester.tap(find.byType(ArticleDragMark), warnIfMissed: false);
     await tester.tap(find.byType(RevengeCardMark), warnIfMissed: false);
     await _settle(tester);
     expect(home.openedRoute, isNull);
     expect(home.user.spent, 0);
   });
 
-  testWidgets('bütün artikeller tamamsa durak yeni kelime ister',
+  testWidgets('Artikel adımı şu anki düğümse ilerlemesini sayar',
       (tester) async {
-    await _pump(tester, stats: _stats(learned: 8, articles: 8));
-    expect(find.text('Yeni kelime öğren'), findsOneWidget);
+    await _pump(tester, path: _path(articleCurrent: true));
+    expect(find.byType(ArticleDragMark), findsOneWidget);
+    expect(find.text('4/10 artikel'), findsOneWidget);
   });
 
   testWidgets('düğüme dokunmak bileti harcar, oyunu şu anki desteyle açar',
@@ -495,15 +522,18 @@ void main() {
     );
   });
 
-  testWidgets('Artikel durağı bilet harcar', (tester) async {
-    final home = await _pump(tester);
-    await tester.tap(find.byType(ArticleDragMark));
+  testWidgets('Artikel adımı bilet harcar, oyunu ünitesiyle açar',
+      (tester) async {
+    final home = await _pump(tester, path: _path(articleCurrent: true));
+    await tester.tap(_currentNode());
     await tester.pump();
     expect(home.articles.prepared, 1);
+    expect(home.articles.configuredUnit, 1);
     expect(home.cards.prepared, 0);
     await _settle(tester);
     expect(home.user.spent, 1);
     expect(home.openedRoute, '/articlepractice');
+    expect((home.openedArguments as ArticleStepArgs?)?.unit, 1);
   });
 
   testWidgets('Rövanş durağı bilet harcamaz', (tester) async {

@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/models/karty_path.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/Buttons/app_button_style.dart';
@@ -14,6 +15,7 @@ import 'package:stelinda/ui/widgets/hop_motion.dart';
 import 'package:stelinda/ui/widgets/karty_unit_header.dart';
 import 'package:stelinda/ui/widgets/ticket_spend_scene.dart';
 import 'package:stelinda/ui/widgets/karty_unit_marks.dart';
+import 'package:stelinda/ui/widgets/practice_station_marks.dart';
 import 'package:stelinda/ui/widgets/quest_icons.dart';
 import 'package:stelinda/ui/widgets/surface_gloss.dart';
 
@@ -90,13 +92,22 @@ class KartyPathScreen extends StatefulWidget {
 /// Artikel Pusulası ve Rövanş aynı anda yapılabilecek yan işler olduğu için
 /// şu anki destenin iki yanında, yolun taşlarıyla ona bağlı durur.
 class KartyPathStations {
-  const KartyPathStations({required this.article, required this.review});
+  const KartyPathStations({this.article, required this.review});
 
-  final KartyPathStation article;
+  /// Artikel durağı. Artikel patikada kendi düğümüne taşınınca (24 Kas 2026)
+  /// null: yalnız Rövanş kalır.
+  final KartyPathStation? article;
   final KartyPathStation review;
 
-  /// Yerleşimi etkileyen kısım: hangi durak açık (yan yol taşlarının rengi).
-  (bool, bool) get _layoutKey => (article.enabled, review.enabled);
+  /// Yerleşimi etkileyen kısım: hangi durak var, hangisi açık (yan yol
+  /// taşlarının rengi).
+  (bool?, bool) get _layoutKey => (article?.enabled, review.enabled);
+
+  /// Yan duraklar ve bulundukları taraf (-1 sol, 1 sağ).
+  List<(KartyPathStation, int)> get _sides => [
+        if (article case final article?) (article, -1),
+        (review, 1),
+      ];
 }
 
 class KartyPathStation {
@@ -868,7 +879,7 @@ class _KartyPathBody extends StatelessWidget {
           ),
         ),
       for (final (i, gate) in layout.gates.indexed) ..._gate(gate, i, s),
-      for (final node in layout.nodes) ..._node(node, s),
+      for (final node in layout.nodes) ..._node(node, s, context.l10n),
     ];
 
     return SizedBox(
@@ -878,7 +889,7 @@ class _KartyPathBody extends StatelessWidget {
     );
   }
 
-  List<Widget> _node(_NodeSpot node, double s) {
+  List<Widget> _node(_NodeSpot node, double s, AppLocalizations l10n) {
     final step = node.step;
     final geo = _NodeGeometry(node.width);
     final left = node.center.dx - node.width / 2;
@@ -916,10 +927,9 @@ class _KartyPathBody extends StatelessWidget {
         : tile;
 
     return [
-      if (current) ...[
-        ..._station(node, stations.article, -1, captionTop, settle, s),
-        ..._station(node, stations.review, 1, captionTop, settle, s),
-      ],
+      if (current)
+        for (final (station, side) in stations._sides)
+          ..._station(node, station, side, captionTop, settle, s),
       Positioned(
         left: left * s,
         top: top * s,
@@ -948,7 +958,7 @@ class _KartyPathBody extends StatelessWidget {
               onTap: () => onStepTap(node.unit, step),
               child: _CenteredLabel(
                 title: step.label,
-                detail: _labelDetail(step),
+                detail: _labelDetail(step, l10n),
                 accent: true,
                 scale: s,
               ),
@@ -969,7 +979,7 @@ class _KartyPathBody extends StatelessWidget {
             settle,
             _NodeLabel(
               title: step.label,
-              detail: _labelDetail(step),
+              detail: _labelDetail(step, l10n),
               state: step.state,
               alignRight: node.labelLeft,
               scale: s,
@@ -1033,7 +1043,18 @@ class _KartyPathBody extends StatelessWidget {
 
   /// Etiketin ikinci satırı. Açık bütün desteler bittiyse (ünite kapısı
   /// kapalı ya da içerik bitti) şu anki adım yalnız tekrarla anlatılır.
-  static String _labelDetail(KartyStep step) {
+  static String _labelDetail(KartyStep step, AppLocalizations l10n) {
+    // Artikel adımı işini söyler: yeni gelen biri "Artikel" adından ne
+    // yapacağını anlamayabilir. Şu anki adımda deste gibi ilerlemesini
+    // sayar; yarıda bırakılan tur kaldığı yerden sürer, halka da onu gösterir.
+    if (step.article) {
+      return switch (step.state) {
+        KartyStepState.locked => '',
+        KartyStepState.current when step.newGoal > 0 =>
+          l10n.pathArticleProgress(step.learnedCount, step.newGoal),
+        _ => l10n.pathArticleDetail,
+      };
+    }
     final reviews = '${step.reviewCount} tekrar';
     switch (step.state) {
       case KartyStepState.done:
@@ -1100,10 +1121,9 @@ class _KartyPathBody extends StatelessWidget {
     final captionTop = gate.bottom + 14;
 
     return [
-      if (current) ...[
-        ..._station(focus, stations.article, -1, captionTop, 1, s),
-        ..._station(focus, stations.review, 1, captionTop, 1, s),
-      ],
+      if (current)
+        for (final (station, side) in stations._sides)
+          ..._station(focus, station, side, captionTop, 1, s),
       Positioned(
         left: left * s,
         top: top * s,
@@ -1151,7 +1171,9 @@ class _KartyPathBody extends StatelessWidget {
   /// Ünitenin bütün desteleri bitti (kalan adım yalnız tekrar, [KartyStep.deck]
   /// null): patika kapıya vardı.
   static bool _decksDone(KartyUnit unit) => unit.steps.every(
-        (step) => step.deck == null || step.state == KartyStepState.done,
+        (step) =>
+            (step.deck == null && !step.article) ||
+            step.state == KartyStepState.done,
       );
 }
 
@@ -1697,10 +1719,8 @@ class _PathLayout {
                 ? _NodeGeometry.ringGap + _NodeGeometry.ringStroke / 2
                 : 8);
         const reach = stationOffset - stationWidth / 2;
-        for (final (side, open) in [
-          (-1.0, stations.article.enabled),
-          (1.0, stations.review.enabled),
-        ]) {
+        for (final (station, side) in stations._sides) {
+          final open = station.enabled;
           segments.add(_TrailSegment(
             c + Offset(side * ring, 0),
             c + Offset(side * reach, 0),
@@ -1742,10 +1762,8 @@ class _PathLayout {
           labelLeft: false,
         );
         const reach = stationOffset - stationWidth / 2;
-        for (final (side, open) in [
-          (-1.0, stations.article.enabled),
-          (1.0, stations.review.enabled),
-        ]) {
+        for (final (station, side) in stations._sides) {
+          final open = station.enabled;
           segments.add(_TrailSegment(
             face + Offset(side * gate.halfWidth, 0),
             face + Offset(side * reach, 0),
@@ -2262,7 +2280,7 @@ class _PathNode extends StatelessWidget {
       label: switch (step.state) {
         KartyStepState.done => '${step.label}, tamamlandı',
         KartyStepState.current => '${step.label}, ${_actionOf(step).spoken}',
-        _ => 'Sıradaki deste',
+        _ => step.article ? 'Sıradaki Artikel tekrarı' : 'Sıradaki deste',
       },
       onTap: onTap,
       // Biten deste şimşek yerine onay taşır (23 Kas 2026, kullanıcı:
@@ -2274,6 +2292,10 @@ class _PathNode extends StatelessWidget {
             glyph: KartyControlGlyph.check,
             size: width * 0.42 * scale,
           ),
+        // Artikel adımı Artikel Pusulası'nın simgesini taşır: oyundaki
+        // sürüklenen kart ve üç hedef.
+        _ when lit && step.article =>
+          ArticleDragMark(size: width * 0.86 * scale),
         _ when lit =>
           QuestIcon(questKey: 'correct_five', size: width * 0.56 * scale),
         _ => _ToneIcon(
@@ -2524,13 +2546,17 @@ typedef _StepAction = ({String label, String spoken});
 
 /// Şu anki adımın eylemi: başlanmamış deste BAŞLA, yarım deste DEVAM ET;
 /// desteler bittiyse vadesi gelen tekrar varken TEKRAR ET, yoksa PRATİK.
-_StepAction _actionOf(KartyStep step) => step.newGoal == 0
-    ? step.reviewCount > 0
-        ? (label: 'TEKRAR ET', spoken: 'Tekrar et')
-        : (label: 'PRATİK', spoken: 'Pratik yap')
-    : step.newCount > 0
+_StepAction _actionOf(KartyStep step) => step.article
+    ? step.learnedCount > 0
         ? (label: 'DEVAM ET', spoken: 'Devam et')
-        : (label: 'BAŞLA', spoken: 'Başla');
+        : (label: 'BAŞLA', spoken: 'Başla')
+    : step.newGoal == 0
+        ? step.reviewCount > 0
+            ? (label: 'TEKRAR ET', spoken: 'Tekrar et')
+            : (label: 'PRATİK', spoken: 'Pratik yap')
+        : step.newCount > 0
+            ? (label: 'DEVAM ET', spoken: 'Devam et')
+            : (label: 'BAŞLA', spoken: 'Başla');
 
 class _DueBadge extends StatelessWidget {
   const _DueBadge({required this.count, required this.scale});
