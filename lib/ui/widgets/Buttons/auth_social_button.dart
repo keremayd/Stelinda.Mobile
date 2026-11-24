@@ -12,11 +12,13 @@ enum AuthSocialProvider { google, apple }
 /// sunucu ayarı gerekiyor, App Store şartı da iOS için.
 bool get appleSignInShown => defaultTargetPlatform == TargetPlatform.iOS;
 
-/// Google Cloud'daki iOS OAuth istemcisinin kimliği. iOS'ta Google ile giriş
-/// bu kimlikle çalışır; Info.plist'e de tersine çevrilmiş kimlik URL şeması
-/// olarak eklenmeli. Boşken iOS'ta Google düğmesi gösterilmez: yarım kalmış
-/// bir giriş yolu App Store incelemesinde takılır.
-const kGoogleIosClientId = '';
+/// Google Cloud'daki iOS OAuth istemcisinin kimliği (proje `stelinda`,
+/// 24 Kas 2026). iOS'ta Google ile giriş bu kimlikle çalışır; Info.plist'te
+/// tersine çevrilmiş hâli URL şeması olarak duruyor, sunucu da bu kimliği
+/// `Google:ClientIds`'te kabul ediyor. Boşken iOS'ta Google düğmesi
+/// gösterilmez: yarım kalmış bir giriş yolu App Store incelemesinde takılır.
+const kGoogleIosClientId =
+    '723796932192-6vcrbp536g3rd7innlpsfju7gb9fh60s.apps.googleusercontent.com';
 
 bool get googleSignInShown =>
     defaultTargetPlatform != TargetPlatform.iOS || kGoogleIosClientId.isNotEmpty;

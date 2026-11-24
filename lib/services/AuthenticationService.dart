@@ -218,7 +218,13 @@ class AuthService {
         'https://www.googleapis.com/auth/userinfo.profile',
         'openid',
       ],
-      serverClientId: '719006594337-6sdf908onisvp355mrpls5jecr4ssake.apps.googleusercontent.com', // Buraya web istemci kimliğini girin
+      // Android'de kimlik belirteci web (sunucu) istemcisi için alınır.
+      // iOS'ta verilmez: bu web istemcisi eski bir Google projesinde, iOS
+      // istemcisi `stelinda` projesinde; belirteç iOS istemcisi için alınır,
+      // sunucu iki kimliği de kabul ediyor.
+      serverClientId: Platform.isIOS
+          ? null
+          : '719006594337-6sdf908onisvp355mrpls5jecr4ssake.apps.googleusercontent.com',
       // iOS'ta Google kendi istemci kimliğini ister (Android'de paket adı ve
       // SHA-1 yeter).
       clientId: Platform.isIOS && kGoogleIosClientId.isNotEmpty
