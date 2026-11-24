@@ -21,10 +21,12 @@ const kGoogleIosClientId = '';
 bool get googleSignInShown =>
     defaultTargetPlatform != TargetPlatform.iOS || kGoogleIosClientId.isNotEmpty;
 
-/// Ekranda gösterilen sosyal girişler, sırasıyla. Apple önce: iOS ana pazar.
+/// Ekranda gösterilen sosyal girişler, sırasıyla: Google üstte, Apple altta
+/// (24 Kas 2026, kullanıcı). Apple'ın kılavuzu sıra koymuyor; düğmenin
+/// öbürlerinden küçük olmamasını ve kaydırmadan görünmesini istiyor.
 List<AuthSocialProvider> get shownSocialProviders => [
-      if (appleSignInShown) AuthSocialProvider.apple,
       if (googleSignInShown) AuthSocialProvider.google,
+      if (appleSignInShown) AuthSocialProvider.apple,
     ];
 
 /// Giriş ve kayıt ekranında iki sosyal düğme arası (yüz 96 + dudak 10 +

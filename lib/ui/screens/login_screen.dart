@@ -361,8 +361,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   // Sosyal girişler tam genişlik, "Giriş yap" düğmesiyle aynı
                   // boyda ve alt alta (24 Kas 2026; Apple'ın kılavuzu: öbür
-                  // giriş düğmelerinden küçük olamaz). Apple önce: iOS ana
-                  // pazar. Bugün her platformda yalnız biri görünüyor.
+                  // giriş düğmelerinden küçük olamaz). Google üstte, Apple
+                  // altta (shownSocialProviders).
                   for (final (i, provider) in shownSocialProviders.indexed)
                     Positioned(
                       left: 32 * scale,
