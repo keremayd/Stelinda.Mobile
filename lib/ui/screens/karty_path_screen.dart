@@ -1095,7 +1095,8 @@ class _KartyPathBody extends StatelessWidget {
       scale: s,
       onTap: current ? onContinue : () {},
     );
-    final moving = current && hopCurrent ? _NodeHop(scale: s, child: tile) : tile;
+    final moving =
+        current && hopCurrent ? _NodeHop(scale: s, child: tile) : tile;
     final captionTop = gate.bottom + 14;
 
     return [
@@ -1303,11 +1304,17 @@ class _TrailSegment {
     this.anchorStart = false,
     this.anchorEnd = false,
     this.hideAbove,
+    this.bend = 0,
   });
 
   final Offset from;
   final Offset to;
   final _TrailStyle style;
+
+  /// Parçanın yay gibi bükülmesi (tasarım birimi, işaret yönü): 0 ise
+  /// uçları dik inen S. Düğümler arasında bükülme yönü parça parça değişir
+  /// ki yol kıvrılan bir patika gibi dursun.
+  final double bend;
 
   /// Bu yükseklikten (tasarım birimi) yukarıdaki taşlar çizilmez: ilk
   /// ünitenin görünmeyen kapıdan gelen yolu kartın üstünde görünmesin.
@@ -1437,6 +1444,10 @@ class _PathLayout {
   /// Şu anki düğüm ünitenin ilk destesi değilse önceki düğümle arasına
   /// eklenen pay; ilk destede [_firstCurrentRoom].
   static const _currentRoom = 120.0;
+
+  /// Desteler arası yolların bükülmesi, sırayla: yönü her parçada değişir,
+  /// boyu eşit değil (eşit olsa yine kalıp gibi okunur).
+  static const _bends = [58.0, -46.0, 64.0, -52.0, 42.0, -60.0];
   static const _pattern = [0.0, 140.0, 15.0, -125.0, -45.0, 110.0, 20.0];
 
   /// Kısa ünitede desteler arasına ve son desteden kapıya eklenen pay.
@@ -1660,6 +1671,12 @@ class _PathLayout {
               : null,
         ));
       }
+      // Desteler arası yol yay gibi bükülür, yönü ve boyu parçadan parçaya
+      // değişir (24 Kas 2026, kullanıcı: "üst üste aynı yöne doğru benzer
+      // şekilli iki patika gidince yapay durmuş"). Her parça uçları dik inen
+      // aynı S'ydi; aynı yöne giden iki parça eş iki çapraz çiziyordu.
+      // Karttan ilk desteye inen yol ve kapıya giren yol S kalır: biri her
+      // ünitede taşı taşına aynı (16 Kas kuralı), öbürü halkaya dik girer.
       for (var i = 0; i + 1 < points.length; i++) {
         segments.add(_TrailSegment(
           points[i],
@@ -1668,6 +1685,7 @@ class _PathLayout {
           unit: unit.number,
           trimStart: clearanceBelow(i),
           trimEnd: clearance(i + 1),
+          bend: _bends[i % _bends.length],
         ));
       }
       if (currentIndex >= 0) {
@@ -1886,7 +1904,7 @@ class _PathPainter extends CustomPainter {
     final a = arrival;
     final stones = <(RRect, _TrailStyle, double, double)>[];
     for (final segment in layout.segments) {
-      final path = _curve(segment.from * s, segment.to * s);
+      final path = _curve(segment.from * s, segment.to * s, bend: segment.bend);
       for (final metric in path.computeMetrics()) {
         for (final (center, angle) in _stonesAlong(metric, segment)) {
           final y = center.dy / s;
@@ -1953,12 +1971,24 @@ class _PathPainter extends CustomPainter {
     }
   }
 
-  /// Düğümden düğüme dikey teğetli yumuşak S.
-  Path _curve(Offset a, Offset b) {
-    final dy = (b.dy - a.dy) * 0.5;
+  /// Düğümden düğüme yumuşak eğri. [bend] sıfırsa dikey teğetli S; değilse
+  /// yay: iki kontrol noktası kirişin üçte birlerinde, kirişe dik [bend]
+  /// kadar kaymış (ortası ~%75'i kadar şişer).
+  Path _curve(Offset a, Offset b, {double bend = 0}) {
+    if (bend == 0) {
+      final dy = (b.dy - a.dy) * 0.5;
+      return Path()
+        ..moveTo(a.dx, a.dy)
+        ..cubicTo(a.dx, a.dy + dy, b.dx, b.dy - dy, b.dx, b.dy);
+    }
+    final chord = b - a;
+    final normal = Offset(-chord.dy, chord.dx) / chord.distance;
+    final push = normal * bend * scale;
+    final c1 = a + chord / 3 + push;
+    final c2 = a + chord * (2 / 3) + push;
     return Path()
       ..moveTo(a.dx, a.dy)
-      ..cubicTo(a.dx, a.dy + dy, b.dx, b.dy - dy, b.dx, b.dy);
+      ..cubicTo(c1.dx, c1.dy, c2.dx, c2.dy, b.dx, b.dy);
   }
 
   /// Düğümlerin arasında eşit aralıklı taşlar: merkezi ve iz yönündeki açısı.
