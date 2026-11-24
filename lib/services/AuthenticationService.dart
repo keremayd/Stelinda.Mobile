@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:stelinda/Utils/AppNotifier.dart';
@@ -14,7 +13,6 @@ import 'package:stelinda/services/DailyReminders.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:stelinda/providers/UserProvider.dart';
 import 'package:stelinda/services/FileService.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:crypto/crypto.dart';
@@ -356,22 +354,15 @@ class AuthService {
     return apiResponse;
   }
 
+  /// Kayıt fotoğrafsız: yeni kullanıcı profilde baş harfleriyle görünür,
+  /// fotoğrafını sonra profilden ekler. Önceden beş hazır memojiden biri
+  /// (her biri 3–5 MB) yükleniyordu (kaldırıldı, 24 Kas 2026, kullanıcı).
   Future<ApiResponse<Map<String, dynamic>>> signUp(SignUpRequest request, BuildContext context) async {
-    final random = Random().nextInt(5) + 1; // 1..5 arası
-
-    final byteData = await rootBundle.load("assets/ProfilePhotos/photo_$random.png");
-
-    // Geçici klasöre yaz fotoğrafı
-    final tempDir = await getTemporaryDirectory();
-    final file = File("${tempDir.path}/profilePhoto.png");
-    await file.writeAsBytes(byteData.buffer.asUint8List());
-    
     FormData formData = FormData.fromMap({
       "firstName": request.firstName,
       "lastName": request.lastName,
       "password": request.password,
       "email": request.email,
-      "file": await MultipartFile.fromFile(file.path, filename: "profilePhoto.png"),
       "roles": "User",
     });
 
