@@ -359,41 +359,40 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  if (googleSignInShown)
-                  Positioned(
-                    // Yalnız biri gösterilince iki düğmenin ortasına oturur.
-                    left: (appleSignInShown ? 226 : 313) * scale,
-                    top: 990 * scale,
-                    child: AuthSocialButton(
-                      provider: AuthSocialProvider.google,
-                      label: 'Google ile giriş yap',
-                      size: 120 * scale,
-                      radius: 34 * scale,
-                      iconSize: 62 * scale,
-                      enabled: !_isLoading,
-                      isLoading: _loadingSource == _LoginSource.google,
-                      onPressed: () => _login(LoginMethod.google),
-                    ),
-                  ),
-                  if (appleSignInShown)
+                  // Sosyal girişler tam genişlik, "Giriş yap" düğmesiyle aynı
+                  // boyda ve alt alta (24 Kas 2026; Apple'ın kılavuzu: öbür
+                  // giriş düğmelerinden küçük olamaz). Apple önce: iOS ana
+                  // pazar. Bugün her platformda yalnız biri görünüyor.
+                  for (final (i, provider) in shownSocialProviders.indexed)
                     Positioned(
-                      left: (googleSignInShown ? 400 : 313) * scale,
-                      top: 990 * scale,
+                      left: 32 * scale,
+                      top: (990 + i * kSocialButtonStep) * scale,
                       child: AuthSocialButton(
-                        provider: AuthSocialProvider.apple,
-                        label: 'Apple ile giriş yap',
-                        size: 120 * scale,
-                        radius: 34 * scale,
-                        iconSize: 62 * scale,
+                        provider: provider,
+                        label: provider == AuthSocialProvider.apple
+                            ? 'Apple ile giriş yap'
+                            : 'Google ile giriş yap',
+                        width: 686 * scale,
+                        height: 96 * scale,
+                        radius: 26 * scale,
+                        depth: 10 * scale,
+                        fontSize: kSocialButtonFont * scale,
                         enabled: !_isLoading,
-                        isLoading: _loadingSource == _LoginSource.apple,
-                        onPressed: () => _login(LoginMethod.apple),
+                        isLoading: _loadingSource ==
+                            (provider == AuthSocialProvider.apple
+                                ? _LoginSource.apple
+                                : _LoginSource.google),
+                        onPressed: () => _login(
+                            provider == AuthSocialProvider.apple
+                                ? LoginMethod.apple
+                                : LoginMethod.google),
                       ),
                     ),
                   if (kDevTools)
                     Positioned(
                       left: 143 * scale,
-                      top: 1190 * scale,
+                      top: (990 + shownSocialProviders.length * kSocialButtonStep + 40) *
+                          scale,
                       child: DepthPressableButton(
                         width: 464 * scale,
                         height: 82 * scale,

@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart'
+    show AppleLogoPainter;
+import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/Buttons/depth_pressable_button.dart';
 
 enum AuthSocialProvider { google, apple }
@@ -18,64 +21,143 @@ const kGoogleIosClientId = '';
 bool get googleSignInShown =>
     defaultTargetPlatform != TargetPlatform.iOS || kGoogleIosClientId.isNotEmpty;
 
+/// Ekranda gösterilen sosyal girişler, sırasıyla. Apple önce: iOS ana pazar.
+List<AuthSocialProvider> get shownSocialProviders => [
+      if (appleSignInShown) AuthSocialProvider.apple,
+      if (googleSignInShown) AuthSocialProvider.google,
+    ];
+
+/// Giriş ve kayıt ekranında iki sosyal düğme arası (yüz 96 + dudak 10 +
+/// boşluk 24), tasarım birimi.
+const double kSocialButtonStep = 130;
+
+/// Düğme yazısı, tasarım birimi: "Giriş yap" düğmesinin yazısıyla (28) aynı
+/// ağırlıkta. Apple'ın kılavuzu sistem düğmesinin oranını öneriyor (yazı
+/// yüksekliğin %43'ü, burada 41); o boyda alternatif giriş birincil
+/// düğmeden yüksek sesle konuşuyordu. Duolingo da o oranı kullanmıyor.
+const double kSocialButtonFont = 30;
+
+/// Google ve Apple ile giriş düğmesi: tam genişlik, logo ve yazı (24 Kas
+/// 2026, kullanıcı: Duolingo'daki gibi yazılı). Önceden yalnız logo vardı;
+/// Apple'ın kılavuzu yazılı düğmeye de izin veriyor.
+///
+/// Apple'ın özel düğme kuralları (Human Interface Guidelines, "Creating a
+/// custom Sign in with Apple button"):
+/// - yazı yalnız "Sign in / Sign up / Continue with Apple" karşılığı,
+/// - logo ve yazı ikisi de beyaz (ya da ikisi de siyah); kenar çizgisi ve
+///   gölge serbest,
+/// - logo Apple'ın çizimi: paketin `AppleLogoPainter`'ı, çizimden
+///   üretilmiş vektör,
+/// - düğme öbür giriş düğmelerinden küçük olamaz: yükseklik "Giriş yap"
+///   düğmesiyle aynı.
+///
+/// Zemin uygulamanın ikincil düğmesi ("Zaten hesabım var"): `0C2244` yüz,
+/// `07182F` dudak; basınca yüz dudağa çöker (§2.4). Kılavuz özel düğmede
+/// zeminin genel renginin siyah ya da beyaz kalmasını istiyor; kullanıcı
+/// konseptin lacivertini seçti (24 Kas 2026; Duolingo da koyu gri zemin
+/// kullanıyor). App Review özel düğmeleri ayrıca değerlendiriyor: ret
+/// gelirse ilk bakılacak yer burası. Google düğmesi aynı malzemede.
 class AuthSocialButton extends StatelessWidget {
   const AuthSocialButton({
     super.key,
     required this.provider,
     required this.label,
-    required this.size,
+    required this.width,
+    required this.height,
     required this.radius,
-    required this.iconSize,
+    required this.depth,
+    required this.fontSize,
     required this.onPressed,
     this.enabled = true,
     this.isLoading = false,
   });
 
   final AuthSocialProvider provider;
+
+  /// Düğmede yazan ve ekran okuyucunun okuduğu metin.
   final String label;
-  final double size;
+  final double width;
+
+  /// Yüzün yüksekliği; dudak altına eklenir.
+  final double height;
   final double radius;
-  final double iconSize;
+  final double depth;
+  final double fontSize;
   final VoidCallback onPressed;
   final bool enabled;
   final bool isLoading;
 
+  static const _face = Color(0xFF0C2244);
+  static const _lip = Color(0xFF07182F);
+  static const _ink = Color(0xFFFFFFFF);
+
   @override
   Widget build(BuildContext context) {
     final apple = provider == AuthSocialProvider.apple;
-    final assetPath =
-        apple ? 'assets/icons/apple-logo.png' : 'assets/icons/google-logo.png';
+    final logoHeight = fontSize * 1.2;
 
-    return Semantics(
-      label: label,
-      child: DepthPressableButton(
-        width: size,
-        height: size,
-        radius: radius,
-        shadowOffset: 0,
-        // Apple'ın kuralı: Apple ile giriş düğmesi siyah zeminde beyaz logo
-        // (ya da tersi). Palet dışı; kullanıcı onayıyla (21 Kas 2026).
-        backgroundColor:
-            apple ? const Color(0xFF000000) : const Color(0xFF163258),
-        shadowColor: apple ? const Color(0xFF000000) : const Color(0xFF0B2143),
-        fontSize: 0,
-        enabled: enabled,
-        onPressed: onPressed,
-        child: isLoading
-            ? SizedBox.square(
-                dimension: iconSize * 0.55,
-                child: const CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Color(0xFFE9EEF5),
+    final Widget logo = isLoading
+        ? SizedBox.square(
+            dimension: logoHeight,
+            child: const CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: _ink,
+            ),
+          )
+        : apple
+            // Paketteki oranlar: logo yazı boyunda, eni boyunun 25/31'i.
+            ? SizedBox(
+                width: logoHeight * 25 / 31,
+                height: logoHeight,
+                child: const CustomPaint(
+                  painter: AppleLogoPainter(color: _ink),
                 ),
               )
             : Image.asset(
-                assetPath,
-                width: iconSize,
-                height: iconSize,
+                'assets/icons/google-logo.png',
+                width: logoHeight,
+                height: logoHeight,
                 fit: BoxFit.contain,
-                color: apple ? const Color(0xFFFFFFFF) : null,
+              );
+
+    return Semantics(
+      label: label,
+      button: true,
+      excludeSemantics: true,
+      child: DepthPressableButton(
+        width: width,
+        height: height,
+        radius: radius,
+        shadowOffset: depth,
+        backgroundColor: _face,
+        shadowColor: _lip,
+        fontSize: 0,
+        enabled: enabled,
+        onPressed: onPressed,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: width * 0.08),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              logo,
+              SizedBox(width: fontSize * 0.55),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _ink,
+                    fontSize: fontSize,
+                    fontWeight: AppTypography.action,
+                    fontFamily: AppTypography.family,
+                    height: 1,
+                  ),
+                ),
               ),
+            ],
+          ),
+        ),
       ),
     );
   }

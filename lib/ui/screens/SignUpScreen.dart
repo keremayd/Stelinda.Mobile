@@ -471,35 +471,30 @@ class _SignUpScreenState extends State<SignUpScreen>
                         ),
                       ),
                     ),
-                    if (googleSignInShown)
-                    Positioned(
-                      // Yalnız biri gösterilince iki düğmenin ortasına oturur.
-                      left: (appleSignInShown ? 211 : 297.5) * scale,
-                      top: 1030 * scale + errorOffset,
-                      child: AuthSocialButton(
-                        provider: AuthSocialProvider.google,
-                        label: 'Google ile devam et',
-                        size: 120 * scale,
-                        radius: 34 * scale,
-                        iconSize: 62 * scale,
-                        enabled: !_isBusy && !_accountCreated,
-                        isLoading: _googleLoading,
-                        onPressed: _continueWithGoogle,
-                      ),
-                    ),
-                    if (appleSignInShown)
+                    // Sosyal girişler tam genişlik, birincil düğmeyle aynı
+                    // boyda ve alt alta (24 Kas 2026).
+                    for (final (i, provider) in shownSocialProviders.indexed)
                       Positioned(
-                        left: (googleSignInShown ? 384 : 297.5) * scale,
-                        top: 1030 * scale + errorOffset,
+                        left: 32 * scale,
+                        top: (1030 + i * kSocialButtonStep) * scale +
+                            errorOffset,
                         child: AuthSocialButton(
-                          provider: AuthSocialProvider.apple,
-                          label: 'Apple ile kayıt ol',
-                          size: 120 * scale,
-                          radius: 34 * scale,
-                          iconSize: 62 * scale,
+                          provider: provider,
+                          label: provider == AuthSocialProvider.apple
+                              ? 'Apple ile devam et'
+                              : 'Google ile devam et',
+                          width: 686 * scale,
+                          height: 96 * scale,
+                          radius: 26 * scale,
+                          depth: 10 * scale,
+                          fontSize: kSocialButtonFont * scale,
                           enabled: !_isBusy && !_accountCreated,
-                          isLoading: _appleLoading,
-                          onPressed: _continueWithApple,
+                          isLoading: provider == AuthSocialProvider.apple
+                              ? _appleLoading
+                              : _googleLoading,
+                          onPressed: provider == AuthSocialProvider.apple
+                              ? _continueWithApple
+                              : _continueWithGoogle,
                         ),
                       ),
                     Positioned(

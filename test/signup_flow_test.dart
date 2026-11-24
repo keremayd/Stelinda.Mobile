@@ -282,7 +282,7 @@ void main() {
 
   testWidgets('Android\'de Apple ile kayıt düğmesi yok', (tester) async {
     await showSignUp(tester, _FakeAuthService());
-    expect(find.bySemanticsLabel('Apple ile kayıt ol'), findsNothing);
+    expect(find.bySemanticsLabel('Apple ile devam et'), findsNothing);
     expect(find.byType(AuthSocialButton), findsOneWidget);
   });
 
@@ -291,14 +291,14 @@ void main() {
     final auth = _FakeAuthService();
     await showSignUp(tester, auth);
 
-    await tester.tap(find.bySemanticsLabel('Apple ile kayıt ol'));
+    await tester.tap(find.bySemanticsLabel('Apple ile devam et'));
     await tester.pump();
     auth.appleLogin.complete(ApiResponse(errorCode: 'İşlem iptal edildi!'));
     await tester.pumpAndSettle();
     expect(find.text('Apple ile devam etme iptal edildi.'), findsOneWidget);
 
     auth.appleLogin = Completer();
-    await tester.tap(find.bySemanticsLabel('Apple ile kayıt ol'));
+    await tester.tap(find.bySemanticsLabel('Apple ile devam et'));
     await tester.pump();
     expect(auth.appleLogins, 2);
     auth.appleLogin.complete(loggedIn());
