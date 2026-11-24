@@ -161,9 +161,11 @@ class KartySessionSummaryScene extends StatelessWidget {
                                 child: Text(
                                   summary.practice
                                       ? 'Pratik tamam!'
-                                      : summary.deck != null
-                                          ? 'Deste ${summary.deck} tamam!'
-                                          : 'Tekrar tamam!',
+                                      : summary.reinforce
+                                          ? 'Pekiştirme tamam!'
+                                          : summary.deck != null
+                                              ? 'Deste ${summary.deck} tamam!'
+                                              : 'Tekrar tamam!',
                                   maxLines: 1,
                                   style: TextStyle(
                                     color: Colors.white,
@@ -263,22 +265,27 @@ class KartySessionSummaryScene extends StatelessWidget {
                         onPressed: onContinue ?? () {},
                       ),
                     ),
-                    SizedBox(height: 18 * s),
-                    _Rise(
-                      progress: _phase(t, 0.85, 0.96, Curves.easeOutCubic),
-                      distance: 40 * s,
-                      child: IgnorePointer(
-                        ignoring: !ready,
-                        child: SecondaryActionButton(
-                          key: const Key('karty-summary-practice'),
-                          text:
-                              summary.practice ? 'BİR TUR DAHA' : 'PRATİK YAP',
-                          scale: s,
-                          width: 670 * s,
-                          onPressed: onPractice ?? () {},
+                    // Pekiştirmenin yeni turu yeni bilet ister: patikadaki
+                    // kapıdan açılır, buradan bedelsiz sürmez.
+                    if (!summary.reinforce) ...[
+                      SizedBox(height: 18 * s),
+                      _Rise(
+                        progress: _phase(t, 0.85, 0.96, Curves.easeOutCubic),
+                        distance: 40 * s,
+                        child: IgnorePointer(
+                          ignoring: !ready,
+                          child: SecondaryActionButton(
+                            key: const Key('karty-summary-practice'),
+                            text: summary.practice
+                                ? 'BİR TUR DAHA'
+                                : 'PRATİK YAP',
+                            scale: s,
+                            width: 670 * s,
+                            onPressed: onPractice ?? () {},
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -289,23 +296,33 @@ class KartySessionSummaryScene extends StatelessWidget {
     );
   }
 
-  /// "8 kelimeyle tanıştın, 5 kelime pekişti." Yeni kelimeler aynı gün
-  /// pekişmez (kutu ancak ertesi gün ilerler); ilk günlerde çubuk
-  /// kıpırdamadığında neden kıpırdamadığı burada söylenir.
+  /// "8 kelimeyle tanıştın." Kelimeler destelerde değil ünitenin
+  /// pekiştirmesinde pekişir (24 Kas 2026); çubuk destede kıpırdamadığında
+  /// neden kıpırdamadığı burada söylenir.
   static String _subtitle(KartySessionSummary summary) {
-    // Pratik kutuyu ilerletmiyor: on dakika pratik yapıp ünitenin neden
+    // Pratik pekiştirmiyor: on dakika pratik yapıp ünitenin neden
     // ilerlemediğini sormak zorunda kalınmasın (kullanıcı, 12 Kas 2026).
     if (summary.practice) {
       return '${summary.words.length} kelimeyle pratik yaptın.\n'
-          'Kelimeler tekrar vakti gelince pekişir.';
+          'Kelimeler pekiştirmede pekişir.';
+    }
+    final consolidated = summary.consolidatedToday;
+    if (summary.reinforce) {
+      final unit = summary.unit;
+      final goal = (unit.wordCount * unit.unlockGoal - 1e-9).ceil();
+      final left = goal - unit.consolidatedCount;
+      final gained = consolidated > 0
+          ? '$consolidated kelime pekişti.'
+          : 'Bu turda pekişen kelime olmadı.';
+      if (left > 0) return '$gained\nHedefe $left kelime kaldı.';
+      return '$gained\nHedefe ulaştın.';
     }
     final learned = summary.deck != null
         ? '${summary.newCount} kelimeyle tanıştın'
         : '${summary.reviewCount} kelimeyi tekrar ettin';
-    final consolidated = summary.consolidatedToday;
     if (consolidated > 0) return '$learned, $consolidated kelime pekişti.';
     if (summary.deck != null) {
-      return '$learned.\nYarın tekrar edince pekişecekler.';
+      return '$learned.\nDesteler bitince pekiştirme açılır.';
     }
     return '$learned.';
   }

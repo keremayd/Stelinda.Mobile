@@ -54,6 +54,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pathReview => 'Tekrar';
 
   @override
+  String get pathReinforce => 'Pekiştirme';
+
+  @override
   String pathUnlockHint(int unit, String unitSuffix, int percent) {
     return 'Ünite $unit$unitSuffix %$percent\'i pekişince açılır';
   }

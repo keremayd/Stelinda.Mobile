@@ -25,6 +25,7 @@ class _Server extends Fake implements KartyService {
     int? unit,
     int? deck,
     int? reviews,
+    bool reinforce = false,
   }) async {
     reviewsSent.add(reviews);
     final (id, stage) = script[_next++];

@@ -225,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           context,
           unit: session?.unit.number,
           deck: session?.deck,
+          reinforce: session?.reinforce ?? false,
         );
   }
 
@@ -325,6 +326,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           unit: unit,
           deck: step.deck,
           reviewCount: step.reviewCount,
+          reinforce: step.reinforce,
         );
       }
     }

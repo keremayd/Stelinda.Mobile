@@ -90,7 +90,7 @@ class _Scores extends UserService {
   final _never = Completer<ApiResponse<UpdateScoreResponse>>();
   @override
   Future<ApiResponse<UpdateScoreResponse>> updateScoreById(int point,
-          {int? kartyId, bool boostActive = false}) =>
+          {int? kartyId, bool boostActive = false, bool reinforce = false}) =>
       _never.future;
 }
 

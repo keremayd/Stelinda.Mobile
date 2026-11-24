@@ -23,6 +23,8 @@
   },
   "pathReview": "Tekrar",
   "@pathReview": { "description": "Açık bütün desteler bitince patikadaki yalnız tekrar adımı." },
+  "pathReinforce": "Pekiştirme",
+  "@pathReinforce": { "description": "Ünitenin desteleri bitince şu anki düğüm olan pekiştirme kapısı." },
   "pathUnlockHint": "Ünite {unit}{unitSuffix} %{percent}'i pekişince açılır",
   "@pathUnlockHint": {
     "description": "Kilitli ünitenin başlığında. unitSuffix Türkçe ilgi hâli eki (1'in, 2'nin); başka dil kullanmaz.",

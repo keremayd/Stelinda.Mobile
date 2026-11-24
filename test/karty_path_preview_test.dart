@@ -30,6 +30,9 @@ void main() {
         image: img(image),
         box: box,
         due: due,
+        // Pekişme 24 Kas 2026'dan beri pekiştirme oyunundan gelir; örnekte
+        // eski kuralla (kutu ≥ 2) pekişmiş sayılanlar aynı kalsın.
+        reinforced: box >= 2,
       );
 
   KartyPathData sample() {

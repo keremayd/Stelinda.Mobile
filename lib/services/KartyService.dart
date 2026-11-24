@@ -21,6 +21,7 @@ class KartyService {
     int? unit,
     int? deck,
     int? reviews,
+    bool reinforce = false,
   }) async {
     final userId = await _storage.read(key: 'userId');
 
@@ -30,6 +31,8 @@ class KartyService {
         if (unit != null) 'unit': unit,
         if (deck != null) 'deck': deck,
         if (reviews != null) 'reviews': reviews,
+        // Ünitenin pekiştirme oyunu: kart pekişmemiş kelimelerden gelir.
+        if (reinforce) 'reinforce': true,
       },
     );
 

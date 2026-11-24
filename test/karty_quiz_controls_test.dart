@@ -77,7 +77,7 @@ class _PendingUserService extends UserService {
   final pending = Completer<ApiResponse<UpdateScoreResponse>>();
   @override
   Future<ApiResponse<UpdateScoreResponse>> updateScoreById(int point,
-          {int? kartyId, bool boostActive = false}) =>
+          {int? kartyId, bool boostActive = false, bool reinforce = false}) =>
       pending.future;
 }
 

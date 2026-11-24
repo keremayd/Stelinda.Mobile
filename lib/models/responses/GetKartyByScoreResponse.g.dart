@@ -70,4 +70,5 @@ const _$KartyCardStageEnumMap = {
   KartyCardStage.test: 'test',
   KartyCardStage.newWord: 'new',
   KartyCardStage.practice: 'practice',
+  KartyCardStage.reinforce: 'reinforce',
 };

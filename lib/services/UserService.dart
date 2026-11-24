@@ -255,13 +255,15 @@ class UserService {
   /// yazıyordu, yani boost zorluğu üçe katlıyordu. Çarpanı [boostActive]
   /// taşıyor; hangi sayacın çarpılacağına sunucu karar veriyor.
   Future<ApiResponse<UpdateScoreResponse>> updateScoreById(int point,
-      {int? kartyId, bool boostActive = false}) async {
+      {int? kartyId, bool boostActive = false, bool reinforce = false}) async {
     final userId = await _storage.read(key: 'userId');
     final response = await _dio.post('users/update-score', data: {
       'userId': userId,
       'point': point,
       'boostActive': boostActive,
       'kartyId': kartyId,
+      // Pekiştirme oyununda doğru bilinen kelime pekişir.
+      if (reinforce) 'reinforce': true,
     });
 
     var apiResponse = ApiResponse<UpdateScoreResponse>.fromJson(

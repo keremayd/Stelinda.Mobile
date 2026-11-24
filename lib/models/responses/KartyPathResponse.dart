@@ -79,6 +79,12 @@ class KartyPathStepDto {
   @JsonKey(defaultValue: [])
   final List<String> upcomingImageUrls;
 
+  /// Ünitenin pekiştirme adımı: desteler bitti, ünite hedefe ulaşmadı.
+  /// Ayrı düğüm çizilmez, ünitenin pekiştirme kapısı şu anki düğüm olur.
+  /// Eski sunucu göndermez, false okunur.
+  @JsonKey(defaultValue: false)
+  final bool reinforce;
+
   KartyPathStepDto({
     required this.state,
     this.deck,
@@ -89,6 +95,7 @@ class KartyPathStepDto {
     required this.dueCount,
     required this.words,
     required this.upcomingImageUrls,
+    this.reinforce = false,
   });
 
   factory KartyPathStepDto.fromJson(Map<String, dynamic> json) =>
@@ -106,6 +113,11 @@ class KartyPathWordDto {
   final int box;
   final bool isDue;
 
+  /// Pekişti mi (ünitenin pekiştirme oyununda doğru bilindi). Eski sunucu
+  /// göndermez, false okunur.
+  @JsonKey(defaultValue: false)
+  final bool reinforced;
+
   KartyPathWordDto({
     required this.kartyId,
     required this.nounText,
@@ -113,6 +125,7 @@ class KartyPathWordDto {
     required this.kartyUrl,
     required this.box,
     required this.isDue,
+    this.reinforced = false,
   });
 
   factory KartyPathWordDto.fromJson(Map<String, dynamic> json) =>

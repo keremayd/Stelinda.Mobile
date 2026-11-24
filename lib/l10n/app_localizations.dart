@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Tekrar'**
   String get pathReview;
 
+  /// Ünitenin desteleri bitince şu anki düğüm olan pekiştirme kapısı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Pekiştirme'**
+  String get pathReinforce;
+
   /// Kilitli ünitenin başlığında. unitSuffix Türkçe ilgi hâli eki (1'in, 2'nin); başka dil kullanmaz.
   ///
   /// In tr, this message translates to:

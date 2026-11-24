@@ -21,6 +21,7 @@ class _Server extends Fake implements KartyService {
     int? unit,
     int? deck,
     int? reviews,
+    bool reinforce = false,
   }) async {
     await gate?.future;
     final id = ++_next;
@@ -47,6 +48,7 @@ class _SlowQueueServer extends _Server {
     int? unit,
     int? deck,
     int? reviews,
+    bool reinforce = false,
   }) async {
     if (_next > 0) await rest.future;
     return super.random(unit: unit, deck: deck, reviews: reviews);

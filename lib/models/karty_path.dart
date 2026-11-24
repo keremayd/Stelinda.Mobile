@@ -70,12 +70,17 @@ class KartyPathData {
             KartyStep(
               state: stepState(step.state),
               deck: step.deck,
-              label: step.deck == null
-                  ? text.pathReview
-                  : text.pathDeck(step.deck!),
-              title: step.deck == null
-                  ? text.pathReview
-                  : text.pathDeck(step.deck!),
+              label: step.reinforce
+                  ? text.pathReinforce
+                  : step.deck == null
+                      ? text.pathReview
+                      : text.pathDeck(step.deck!),
+              title: step.reinforce
+                  ? text.pathReinforce
+                  : step.deck == null
+                      ? text.pathReview
+                      : text.pathDeck(step.deck!),
+              reinforce: step.reinforce,
               newCount: step.newCount,
               learnedCount: step.learnedCount,
               newGoal: step.newGoal,
@@ -89,6 +94,7 @@ class KartyPathData {
                     image: picture(word.kartyUrl),
                     box: word.box,
                     due: word.isDue,
+                    reinforced: word.reinforced,
                   ),
               ],
               upcoming: [
@@ -177,8 +183,9 @@ class KartyUnit {
   final KartyUnitState state;
   final int wordCount;
 
-  /// `box ≥ 2` olan kelime sayısı. Ünite sonundaki pekiştirme halkası bunu
-  /// gösterir; `unlockGoal` oranına ulaşınca sıradaki ünite açılır.
+  /// Pekiştirme oyununda doğru bilinmiş (pekişmiş) kelime sayısı. Ünite
+  /// sonundaki pekiştirme halkası bunu gösterir; `unlockGoal` oranına
+  /// ulaşınca sıradaki ünite açılır.
   final int consolidatedCount;
   final double unlockGoal;
 
@@ -192,6 +199,19 @@ class KartyUnit {
 
   double get consolidatedRatio =>
       wordCount == 0 ? 0 : (consolidatedCount / wordCount).clamp(0.0, 1.0);
+
+  /// Patikada düğüm olarak çizilen adımlar: desteler (ve içerik bitince
+  /// yalnız tekrar). Pekiştirme adımı düğüm değil, ünitenin kapısıdır.
+  List<KartyStep> get pathSteps =>
+      [for (final step in steps) if (!step.reinforce) step];
+
+  /// Şu anki adım ünitenin pekiştirmesiyse o adım; kapı şu anki düğümdür.
+  KartyStep? get currentReinforce {
+    for (final step in steps) {
+      if (step.reinforce && step.state == KartyStepState.current) return step;
+    }
+    return null;
+  }
 }
 
 enum KartyStepState { done, current, upcoming, locked }
@@ -212,9 +232,15 @@ class KartyStep {
     this.dueCount = 0,
     this.words = const [],
     this.upcoming = const [],
+    this.reinforce = false,
   });
 
   final KartyStepState state;
+
+  /// Ünitenin pekiştirme adımı: desteler bitti, ünite hedefe ulaşmadı.
+  /// Patikada ayrı düğüm yok, ünitenin kapısı şu anki düğüm olur; oyun
+  /// sekiz soruluk pekiştirme turudur.
+  final bool reinforce;
 
   /// Ünite içindeki deste numarası; yalnız tekrar adımında null.
   final int? deck;
@@ -253,15 +279,20 @@ class KartyWord {
     required this.image,
     required this.box,
     this.due = false,
+    this.reinforced = false,
   });
 
   final String word;
   final String article;
   final ImageProvider image;
 
-  /// Leitner kutusu (0–5).
+  /// Leitner kutusu (0–5): tekrarın ne zaman geleceği.
   final int box;
   final bool due;
 
-  bool get consolidated => box >= 2;
+  /// Ünitenin pekiştirme oyununda doğru bilindi (24 Kas 2026'dan önce
+  /// pekişme kutu 2 demekti).
+  final bool reinforced;
+
+  bool get consolidated => reinforced;
 }

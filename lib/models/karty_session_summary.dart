@@ -10,6 +10,7 @@ class KartySessionSummary {
     required this.unit,
     this.deck,
     this.practice = false,
+    this.reinforce = false,
     required this.words,
     required this.newCount,
     required this.reviewCount,
@@ -30,6 +31,10 @@ class KartySessionSummary {
   /// Pratik turu: vakti gelmiş tekrar yokken ya da özetten sonra oynanan
   /// on soru. Puan kazandırır, kelime pekiştirmez.
   final bool practice;
+
+  /// Ünitenin pekiştirme turu: sekiz soru, doğru bilinen kelime pekişir.
+  /// Yeni tur yeni bilet ister; özette PRATİK YAP yok.
+  final bool reinforce;
 
   /// Karolarda gösterilen kelimeler: destenin kelimeleri; yalnız tekrar
   /// oyununda ve pratikte cevaplananlar.

@@ -38,26 +38,42 @@ class KartyProvider with ChangeNotifier {
   int _reviewsAnswered = 0;
   int get reviewsAnswered => _reviewsAnswered;
 
-  void startSession({int? unit, int? deck}) {
+  /// Ünitenin pekiştirme oyunu mu: kartlar pekişmemiş kelimelerden istenir.
+  bool _sessionReinforce = false;
+
+  void startSession({int? unit, int? deck, bool reinforce = false}) {
     _sessionUnit = unit;
     _sessionDeck = deck;
+    _sessionReinforce = reinforce;
     _reviewsAnswered = 0;
   }
 
+  /// Pekiştirme turu bitti, oyun pratikle sürüyor: sıradaki kartlar
+  /// pekiştirmeden istenmesin.
+  void endReinforcement() => _sessionReinforce = false;
+
   /// Kartlar bilet sahnesi sürerken inmeye başlar; oyun yükleniyor simgesi
   /// göstermeden açılsın.
-  void prepareSession(BuildContext context, {int? unit, int? deck}) {
+  void prepareSession(BuildContext context,
+      {int? unit, int? deck, bool reinforce = false}) {
     reset();
-    startSession(unit: unit, deck: deck);
+    startSession(unit: unit, deck: deck, reinforce: reinforce);
     _preparedUnit = unit;
     _preparedDeck = deck;
+    _preparedReinforce = reinforce;
     _preparedLoad = loadKarty(context);
   }
 
+  bool _preparedReinforce = false;
+
   /// Bu deste için hazırlanmış yükleme varsa bir kez teslim eder.
-  Future<bool>? takePreparedLoad({int? unit, int? deck}) {
+  Future<bool>? takePreparedLoad(
+      {int? unit, int? deck, bool reinforce = false}) {
     final load = _preparedLoad;
-    if (load == null || unit != _preparedUnit || deck != _preparedDeck) {
+    if (load == null ||
+        unit != _preparedUnit ||
+        deck != _preparedDeck ||
+        reinforce != _preparedReinforce) {
       return null;
     }
     _preparedLoad = null;
@@ -241,6 +257,7 @@ class KartyProvider with ChangeNotifier {
               unit: _sessionUnit,
               deck: _sessionDeck,
               reviews: _sessionUnit == null ? null : reviewsServed,
+              reinforce: _sessionReinforce,
             );
       if (apiResponse.errorCode != null || apiResponse.data == null) {
         return null;

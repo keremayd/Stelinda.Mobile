@@ -168,6 +168,11 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
   /// belirler.
   late bool _practicing = !(widget.session?.hasWork ?? false);
 
+  /// Pekiştirme turu sürüyor: cevaplar kelimeyi pekiştirir. Tur bitip
+  /// pratiğe geçilirse kapanır.
+  bool get _reinforcing =>
+      (widget.session?.reinforce ?? false) && !_practicing;
+
   /// Pratik turu bu kadar cevapla biter, "Pratik tamam!" açılır. Turun sonu
   /// yokken on dakika oynayan kullanıcı "bunun sonu yok mu?" diye sordu
   /// (12 Kas 2026); Duolingo'da da pratik belli sayıda soruyla biter.
@@ -197,6 +202,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
           : kartyProvider.takePreparedLoad(
               unit: widget.session?.unit.number,
               deck: widget.session?.deck,
+              reinforce: widget.session?.reinforce ?? false,
             );
       if (prepared == null) {
         kartyProvider.reset();
@@ -204,6 +210,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
         kartyProvider.startSession(
           unit: widget.session?.unit.number,
           deck: widget.session?.deck,
+          reinforce: widget.session?.reinforce ?? false,
         );
       }
       if (widget.reviewMode) {
@@ -588,6 +595,9 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
         1,
         kartyId: currentKarty.kartyId,
         boostActive: _isBoostActive,
+        // Pekiştirme turunda doğru bilinen kelime pekişir; tur bitip pratiğe
+        // geçilince pekiştirmez.
+        reinforce: _reinforcing,
       );
       if (!mounted) return;
       verdict.value = apiResponse.errorCode == null;
@@ -691,6 +701,23 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
       if (_sessionAnswered < _practiceRound) return false;
       return _presentSummary(_buildPracticeSummary(session));
     }
+    // Pekiştirme turu sekiz cevapla biter; bir bilet bir tur. Sunucuya
+    // yalnız ünitenin son hâli sorulur (çubuk ve özet).
+    if (session.reinforce) {
+      if (_sessionAnswered < KartySessionArgs.reinforceRound) return false;
+      KartySessionStatusResponse? status;
+      try {
+        final response = await kartyService.sessionStatus(
+          unit: session.unit.number,
+          reviews: kartyProvider.reviewsAnswered,
+        );
+        status = response.errorCode == null ? response.data : null;
+      } catch (_) {
+        status = null;
+      }
+      if (!mounted) return false;
+      return _presentSummary(_buildReinforceSummary(session, status));
+    }
 
     KartySessionStatusResponse? status;
     try {
@@ -734,6 +761,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
     if (!mounted) return true;
     if (choice == KartySummaryChoice.practice) {
       _practicing = true;
+      kartyProvider.endReinforcement();
       _startPracticeRound();
       return false;
     }
@@ -775,11 +803,46 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
                   article: word.article,
                   image: CachedSignedImage(word.kartyUrl),
                   box: word.box,
+                  reinforced: word.reinforced,
                 ),
             ]
           : _sessionWords.values.toList(),
       newCount: session.deck != null ? status.deckSize : 0,
       reviewCount: kartyProvider.reviewsAnswered,
+      consolidatedBefore: before.consolidatedCount,
+      points: _sessionPoints,
+      correct: _sessionCorrect,
+      answered: _sessionAnswered,
+      revenge: _sessionWrongIds.length,
+      league: _leagueNote(),
+    );
+  }
+
+  /// Pekiştirme turunun özeti: turda cevaplanan kelimeler ve ünitenin
+  /// pekişme çubuğu. Sunucuya ulaşılamazsa çubuk oyun başındaki hâliyle
+  /// kalır; pekişme yine sunucuda kayıtlı.
+  KartySessionSummary _buildReinforceSummary(
+    KartySessionArgs session,
+    KartySessionStatusResponse? status,
+  ) {
+    final before = session.unit;
+    final unit = status == null
+        ? before
+        : _unitNow = KartyUnit(
+            number: before.number,
+            title: before.title,
+            state: before.state,
+            wordCount: status.unitWordCount,
+            consolidatedCount: status.unitConsolidated,
+            unlockGoal: before.unlockGoal,
+            emblem: before.emblem,
+          );
+    return KartySessionSummary(
+      unit: unit,
+      reinforce: true,
+      words: _sessionWords.values.toList(),
+      newCount: 0,
+      reviewCount: 0,
       consolidatedBefore: before.consolidatedCount,
       points: _sessionPoints,
       correct: _sessionCorrect,

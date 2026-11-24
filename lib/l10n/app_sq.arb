@@ -17,6 +17,7 @@
 
   "pathDeck": "Pako {number}",
   "pathReview": "Përsëritje",
+  "pathReinforce": "Përforcim",
   "pathUnlockHint": "Hapet kur përforcohet {percent}% e Njësisë {unit}",
   "unitUnlockReason": "E përforcove {percent}% të Njësisë {unit}.",
   "leagueMemberReport": "Raporto",

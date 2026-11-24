@@ -42,6 +42,11 @@ enum KartyCardStage {
   newWord,
   @JsonValue('practice')
   practice,
+
+  /// Ünitenin pekiştirme oyununda henüz pekişmemiş kelime (sunucuda
+  /// `reinforce`).
+  @JsonValue('reinforce')
+  reinforce,
 }
 
 @JsonSerializable()

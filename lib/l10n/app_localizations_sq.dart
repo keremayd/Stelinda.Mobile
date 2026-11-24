@@ -54,6 +54,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get pathReview => 'Përsëritje';
 
   @override
+  String get pathReinforce => 'Përforcim';
+
+  @override
   String pathUnlockHint(int unit, String unitSuffix, int percent) {
     return 'Hapet kur përforcohet $percent% e Njësisë $unit';
   }

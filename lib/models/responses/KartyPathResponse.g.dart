@@ -67,6 +67,7 @@ KartyPathStepDto _$KartyPathStepDtoFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           [],
+      reinforce: json['reinforce'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$KartyPathStepDtoToJson(KartyPathStepDto instance) =>
@@ -80,6 +81,7 @@ Map<String, dynamic> _$KartyPathStepDtoToJson(KartyPathStepDto instance) =>
       'dueCount': instance.dueCount,
       'words': instance.words,
       'upcomingImageUrls': instance.upcomingImageUrls,
+      'reinforce': instance.reinforce,
     };
 
 KartyPathWordDto _$KartyPathWordDtoFromJson(Map<String, dynamic> json) =>
@@ -90,6 +92,7 @@ KartyPathWordDto _$KartyPathWordDtoFromJson(Map<String, dynamic> json) =>
       kartyUrl: json['kartyUrl'] as String,
       box: (json['box'] as num).toInt(),
       isDue: json['isDue'] as bool,
+      reinforced: json['reinforced'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$KartyPathWordDtoToJson(KartyPathWordDto instance) =>
@@ -100,4 +103,5 @@ Map<String, dynamic> _$KartyPathWordDtoToJson(KartyPathWordDto instance) =>
       'kartyUrl': instance.kartyUrl,
       'box': instance.box,
       'isDue': instance.isDue,
+      'reinforced': instance.reinforced,
     };

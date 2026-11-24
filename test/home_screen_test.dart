@@ -160,7 +160,8 @@ class _Cards extends KartyProvider {
   int resets = 0;
 
   @override
-  void prepareSession(BuildContext context, {int? unit, int? deck}) {
+  void prepareSession(BuildContext context,
+      {int? unit, int? deck, bool reinforce = false}) {
     prepared += 1;
     this.unit = unit;
     this.deck = deck;

@@ -69,7 +69,7 @@ class _User extends UserService {
 
   @override
   Future<ApiResponse<UpdateScoreResponse>> updateScoreById(int point,
-      {int? kartyId, bool boostActive = false}) async {
+      {int? kartyId, bool boostActive = false, bool reinforce = false}) async {
     answers += 1;
     return ApiResponse(data: UpdateScoreResponse(userId: 'u', score: 0));
   }

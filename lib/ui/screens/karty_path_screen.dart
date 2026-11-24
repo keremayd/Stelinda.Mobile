@@ -1079,22 +1079,57 @@ class _KartyPathBody extends StatelessWidget {
     final waiting = !locked && !ready && !_decksDone(unit);
     final bump = pop >= 1 ? 1.0 : 1 + 0.16 * math.sin(math.pi * pop);
 
+    // Desteler bitti, ünite hedefe ulaşmadı: kapı şu anki düğüm (24 Kas
+    // 2026, kullanıcı). Dokununca pekiştirme turu açılır; altında etiketi,
+    // iki yanında yan duraklar, desteler gibi zıplar.
+    final focus = layout.reinforceFocus;
+    final current = !locked &&
+        a == null &&
+        focus != null &&
+        focus.unit.number == unit.number;
+    final tile = _GateNode(
+      ready: ready,
+      dimmed: locked,
+      waiting: waiting,
+      current: current,
+      scale: s,
+      onTap: current ? onContinue : () {},
+    );
+    final moving = current && hopCurrent ? _NodeHop(scale: s, child: tile) : tile;
+    final captionTop = gate.bottom + 14;
+
     return [
+      if (current) ...[
+        ..._station(focus, stations.article, -1, captionTop, 1, s),
+        ..._station(focus, stations.review, 1, captionTop, 1, s),
+      ],
       Positioned(
         left: left * s,
         top: top * s,
         child: _bump(
           bump,
-          _GateNode(
-            ready: ready,
-            dimmed: locked,
-            waiting: waiting,
-            scale: s,
-            onTap: () {},
-          ),
+          current && currentNodeKey != null
+              ? TicketTarget(key: currentNodeKey, child: moving)
+              : moving,
         ),
       ),
-      if (!locked)
+      if (current)
+        Positioned(
+          left: (gate.center.dx - 160) * s,
+          width: 320 * s,
+          top: captionTop * s,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onContinue,
+            child: _CenteredLabel(
+              title: focus.step.label,
+              detail: '${unit.consolidatedCount}/${unit.wordCount} kelime',
+              accent: true,
+              scale: s,
+            ),
+          ),
+        ),
+      if (!locked && !current)
         Positioned(
           left: labelLeft * s,
           width: (750 - 24 - labelLeft) * s,
@@ -1303,6 +1338,7 @@ class _PathLayout {
     required this.headers,
     required this.segments,
     required this.height,
+    this.reinforceFocus,
   });
 
   final List<_NodeSpot> nodes;
@@ -1310,6 +1346,11 @@ class _PathLayout {
   final List<_HeaderSpot> headers;
   final List<_TrailSegment> segments;
   final double height;
+
+  /// Şu anki adım bir ünitenin pekiştirmesiyse o ünitenin kapısı: kamera,
+  /// "desteye dön" ve yan duraklar onu şu anki düğüm sayar. Merkezi kapının
+  /// yüzünün ortası.
+  final _NodeSpot? reinforceFocus;
 
   static const centerX = 375.0;
 
@@ -1420,10 +1461,11 @@ class _PathLayout {
   /// kaydırma tepedeyken ekranın 72 birim altında kalır.
   static double _extraGap(KartyUnit unit, double viewport) {
     final natural = _naturalSpan(unit);
-    if (unit.steps.isEmpty) {
+    final steps = unit.pathSteps;
+    if (steps.isEmpty) {
       return math.max(0.0, (viewport + 72 - natural) / 2);
     }
-    final first = unit.steps.first;
+    final first = steps.first;
     final firstCurrent = first.state == KartyStepState.current;
     // İlk destenin görünen ortası (yüz + kalınlık bandı; düğümün konumu
     // yüzün ortası), başlık kartının alt kenarından.
@@ -1432,38 +1474,46 @@ class _PathLayout {
         _NodeGeometry(firstCurrent ? currentWidth : nodeWidth).depth / 2;
     return math.max(
       0.0,
-      (viewport + firstBelowCard - natural) / unit.steps.length,
+      (viewport + firstBelowCard - natural) / steps.length,
     );
   }
 
   /// Ünitenin pay eklenmeden boyu: başlığın tepesinden kapıdan sonraki yolun
   /// sonuna (sonraki başlığın tepesi). [compute]'taki adımların aynısı.
   static double _naturalSpan(KartyUnit unit) {
+    final steps = unit.pathSteps;
     var y = KartyUnitHeader.height + headerGap;
     var previousCurrent = false;
-    for (var i = 0; i < unit.steps.length; i++) {
-      final current = unit.steps[i].state == KartyStepState.current;
+    for (var i = 0; i < steps.length; i++) {
+      final current = steps[i].state == KartyStepState.current;
       if (i > 0) {
         y += stepGap +
             (current ? _currentRoom : 0) +
             (previousCurrent ? 26 + _captionRoom : 0);
       } else if (current) {
-        y += _firstCurrentRoom(unit.steps[i].newGoal > 0);
+        y += _firstCurrentRoom(steps[i].newGoal > 0);
       }
       previousCurrent = current;
     }
     final half = _GateSpot.halfHeightFor(ringOffset);
     final gateCenter =
         y + 196 + half + (previousCurrent ? 40 + _captionRoom : 0);
-    return gateCenter + half + gateTail;
+    return gateCenter +
+        half +
+        gateTail +
+        (unit.currentReinforce != null ? reinforceCaptionRoom : 0);
   }
 
   _NodeSpot? get current {
     for (final node in nodes) {
       if (node.step.state == KartyStepState.current) return node;
     }
-    return null;
+    return reinforceFocus;
   }
+
+  /// Pekiştirme kapısının altındaki etiket ve yan durakların adları için
+  /// yol payı: şu anki düğümün etiket payıyla aynı.
+  static double get reinforceCaptionRoom => 40 + _captionRoom;
 
   /// Ünitenin listedeki konumu (başlık ve kapı listeleri aynı sırada);
   /// yoksa -1.
@@ -1490,9 +1540,15 @@ class _PathLayout {
 
     var y = 0.0;
     Offset? previousExit;
+    // Önceki kapı şu anki düğümse (pekiştirme) altında etiketi ve yan
+    // durakların adları var: inen yol onlardan sonra başlar.
+    var previousExitTrim = 26.0;
+    _NodeSpot? reinforceFocus;
 
     for (var u = 0; u < data.units.length; u++) {
       final unit = data.units[u];
+      final steps = unit.pathSteps;
+      final reinforce = unit.currentReinforce;
       final locked = unit.state == KartyUnitState.locked;
 
       // Her ünitenin başlığı yolun içinde; kaydırınca üste yapışan da bu.
@@ -1501,14 +1557,13 @@ class _PathLayout {
       final hasNext = u + 1 < data.units.length;
       final extra =
           hasNext && minUnitSpan > 0 ? _extraGap(unit, minUnitSpan) : 0.0;
-      y +=
-          KartyUnitHeader.height + headerGap + (unit.steps.isEmpty ? extra : 0);
+      y += KartyUnitHeader.height + headerGap + (steps.isEmpty ? extra : 0);
 
       final points = <Offset>[];
       var currentIndex = -1;
       var previousCurrent = false;
-      for (var i = 0; i < unit.steps.length; i++) {
-        final step = unit.steps[i];
+      for (var i = 0; i < steps.length; i++) {
+        final step = steps[i];
         final current = step.state == KartyStepState.current;
         if (i > 0) {
           y += stepGap +
@@ -1536,8 +1591,10 @@ class _PathLayout {
       }
 
       const offset = ringOffset;
+      // Pekiştirme sırasında kapı şu anki düğüm: ortada durur, iki yanında
+      // yan duraklar.
       final gateCenter = Offset(
-        gateX,
+        reinforce != null ? centerX : gateX,
         y +
             196 +
             extra +
@@ -1555,7 +1612,7 @@ class _PathLayout {
       // lacivert taşlarla birbirine bağlanıyordu.
       _TrailStyle styleTo(int i) {
         if (locked) return _TrailStyle.locked;
-        final state = unit.steps[i].state;
+        final state = steps[i].state;
         return state == KartyStepState.done || state == KartyStepState.current
             ? _TrailStyle.done
             : _TrailStyle.ahead;
@@ -1565,8 +1622,7 @@ class _PathLayout {
       // öbür düğümlerdeki kadar kala biter ([_currentAbove]). Etiketi
       // altında: aşağı inen iz etiketten sonra başlar. Halkasız adım (yalnız
       // tekrar) kendi payını kullanır ([_ringlessBelow]).
-      final ringless =
-          currentIndex >= 0 && unit.steps[currentIndex].newGoal <= 0;
+      final ringless = currentIndex >= 0 && steps[currentIndex].newGoal <= 0;
       double clearance(int i) =>
           i != currentIndex ? nodeClearance : _currentAbove(!ringless);
       double clearanceBelow(int i) => i != currentIndex
@@ -1595,9 +1651,9 @@ class _PathLayout {
           landing,
           styleTo(0),
           unit: unit.number,
-          trimStart: 26,
+          trimStart: previousExitTrim,
           trimEnd: nodeClearance,
-          anchorStart: true,
+          anchorStart: previousExitTrim <= 26,
           // Taşın yarısı kartın tepesinden taşmasın: bir taş boyu aşağısı.
           hideAbove: previousExit == null
               ? header.top + _PathPainter._stoneLength
@@ -1619,7 +1675,7 @@ class _PathLayout {
         // Açık durağa giden yol lacivert (yürünebilir), kapalıya giden koyu.
         final c = points[currentIndex];
         final ring = currentWidth / 2 +
-            (unit.steps[currentIndex].newGoal > 0
+            (steps[currentIndex].newGoal > 0
                 ? _NodeGeometry.ringGap + _NodeGeometry.ringStroke / 2
                 : 8);
         const reach = stationOffset - stationWidth / 2;
@@ -1639,7 +1695,7 @@ class _PathLayout {
       }
       if (points.isNotEmpty) {
         // Kapıya giden taşlar ancak ünitenin bütün adımları geçildiyse yeşil.
-        final finished = unit.steps.last.state == KartyStepState.done;
+        final finished = steps.last.state == KartyStepState.done;
         segments.add(_TrailSegment(
           points.last,
           ringTop,
@@ -1655,10 +1711,41 @@ class _PathLayout {
         ));
       }
 
+      if (reinforce != null) {
+        // Kapı şu anki düğüm: yüzünün ortası düğüm merkezi sayılır, yan
+        // yollar halkanın iki yanından durağa iki taş.
+        const geo = _NodeGeometry(gateWidth);
+        final face = Offset(gateCenter.dx, gateCenter.dy - geo.depth / 2);
+        reinforceFocus = _NodeSpot(
+          unit: unit,
+          step: reinforce,
+          center: face,
+          width: gateWidth,
+          labelLeft: false,
+        );
+        const reach = stationOffset - stationWidth / 2;
+        for (final (side, open) in [
+          (-1.0, stations.article.enabled),
+          (1.0, stations.review.enabled),
+        ]) {
+          segments.add(_TrailSegment(
+            face + Offset(side * gate.halfWidth, 0),
+            face + Offset(side * reach, 0),
+            open ? _TrailStyle.ahead : _TrailStyle.locked,
+            unit: unit.number,
+            trimStart: 10,
+            trimEnd: 10,
+          ));
+        }
+      }
+
       previousExit = ringBottom;
+      previousExitTrim = reinforce != null ? reinforceCaptionRoom : 26;
       // Kapıdan sonraki ünitenin başlığına sabit yol; kısa ünitede eksik boy
       // yukarıda desteler arasına dağıtıldı ([_extraGap]).
-      y = ringBottom.dy + gateTail;
+      y = ringBottom.dy +
+          gateTail +
+          (reinforce != null ? reinforceCaptionRoom : 0);
     }
 
     return _PathLayout._(
@@ -1667,6 +1754,7 @@ class _PathLayout {
       headers: headers,
       segments: segments,
       height: y + 120,
+      reinforceFocus: reinforceFocus,
     );
   }
 }
@@ -2254,6 +2342,7 @@ class _GateNode extends StatelessWidget {
     required this.scale,
     required this.onTap,
     this.waiting = false,
+    this.current = false,
   });
 
   final bool ready;
@@ -2261,6 +2350,10 @@ class _GateNode extends StatelessWidget {
 
   /// Ünitenin desteleri bitmedi: kapıya henüz varılmadı.
   final bool waiting;
+
+  /// Şu anki düğüm: desteler bitti, pekiştirme turu buradan oynanır.
+  /// Şu anki deste gibi accent mavi.
+  final bool current;
   final double scale;
   final VoidCallback onTap;
 
@@ -2270,9 +2363,21 @@ class _GateNode extends StatelessWidget {
     return _NodeTile(
       width: width,
       scale: scale,
-      face: ready ? _C.green : (dimmed ? _C.tile : _C.raised),
-      depth: ready ? _C.greenDepth : (dimmed ? _C.base : _C.panel),
-      label: ready ? 'Ünite sonu, hedefe ulaşıldı' : 'Ünite sonu, pekiştirme',
+      face: ready
+          ? _C.green
+          : current
+              ? _C.accent
+              : (dimmed ? _C.tile : _C.raised),
+      depth: ready
+          ? _C.greenDepth
+          : current
+              ? _C.accentDepth
+              : (dimmed ? _C.base : _C.panel),
+      label: ready
+          ? 'Ünite sonu, hedefe ulaşıldı'
+          : current
+              ? 'Pekiştirme, oyna'
+              : 'Ünite sonu, pekiştirme',
       onTap: onTap,
       // Hedefe ulaşan kapı geçilen düğümler gibi yeşile döner; yeşil dönüş oku
       // yeşil yüzde kaybolacağı için yerine beyaz onay.
