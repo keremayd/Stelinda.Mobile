@@ -76,7 +76,50 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pathReviewStationEmpty => 'Hatan yok';
 
   @override
+  String get stepIntroStart => 'BAŞLA';
+
+  @override
+  String get introDeckTitle => 'Deste';
+
+  @override
+  String introDeckTagline(int count) {
+    return '$count yeni kelime';
+  }
+
+  @override
+  String get introDeckRow1 => 'Kelimeler resimleriyle tanıtılır';
+
+  @override
+  String get introDeckRow2 => 'Hepsi bilinince deste biter';
+
+  @override
+  String get introArticleRow1 => 'Kartı doğru artikele sürükle';
+
+  @override
+  String get introArticleRow2 => 'Unutulan artikeller geri gelir';
+
+  @override
+  String get introReinforceTagline => 'Ünitenin son adımı';
+
+  @override
+  String get introReinforceRow1 => 'Doğru bilinen kelime pekişir';
+
+  @override
+  String introReinforceRow2(int percent) {
+    return '%$percent pekişince yeni ünite açılır';
+  }
+
+  @override
   String get introReviewTitle => 'Rövanş';
+
+  @override
+  String get introReviewTagline => 'Hataların tekrarı';
+
+  @override
+  String get introReviewRow1 => 'Yanlış bilinen kartlar toplanır';
+
+  @override
+  String get introReviewRow2 => 'Hepsi düzelince 1 bilet kazanılır';
 
   @override
   String get articleStepDoneTitle => 'Artikel tamam!';

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stelinda/models/ArticlePractice.dart';
+import 'package:stelinda/ui/widgets/step_intro_sheet.dart';
 import 'package:stelinda/models/ApiResponse.dart';
 import 'package:stelinda/models/karty_session.dart';
 import 'package:stelinda/models/responses/DailyActivityResponse.dart';
@@ -534,6 +535,31 @@ void main() {
     expect(home.user.spent, 1);
     expect(home.openedRoute, '/articlepractice');
     expect((home.openedArguments as ArticleStepArgs?)?.unit, 1);
+  });
+
+  testWidgets('ilk Rövanş açıklama kartıyla açılır, kapatılırsa açılmaz',
+      (tester) async {
+    debugStepIntroSeenOverride = false;
+    addTearDown(() => debugStepIntroSeenOverride = true);
+    final home = await _pump(tester);
+
+    await tester.tap(find.byType(RevengeCardMark));
+    await _settle(tester);
+    expect(find.text('Hataların tekrarı'), findsOneWidget);
+    expect(find.text('Yanlış bilinen kartlar toplanır'), findsOneWidget);
+    expect(home.openedRoute, isNull);
+
+    // Kart kapatılırsa oyun açılmaz.
+    await tester.tapAt(const Offset(215, 80));
+    await _settle(tester);
+    expect(find.text('Hataların tekrarı'), findsNothing);
+    expect(home.openedRoute, isNull);
+
+    await tester.tap(find.byType(RevengeCardMark));
+    await _settle(tester);
+    await tester.tap(find.text('BAŞLA'));
+    await _settle(tester);
+    expect(home.openedRoute, '/kartyreview');
   });
 
   testWidgets('Rövanş durağı bilet harcamaz', (tester) async {

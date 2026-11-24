@@ -76,7 +76,50 @@ class AppLocalizationsSq extends AppLocalizations {
   String get pathReviewStationEmpty => 'S\'ke gabime';
 
   @override
+  String get stepIntroStart => 'FILLO';
+
+  @override
+  String get introDeckTitle => 'Pako';
+
+  @override
+  String introDeckTagline(int count) {
+    return '$count fjalë të reja';
+  }
+
+  @override
+  String get introDeckRow1 => 'Fjalët prezantohen me figura';
+
+  @override
+  String get introDeckRow2 => 'Pakoja mbaron kur dihen të gjitha';
+
+  @override
+  String get introArticleRow1 => 'Tërhiqe kartën te artikulli i saktë';
+
+  @override
+  String get introArticleRow2 => 'Artikujt e harruar kthehen';
+
+  @override
+  String get introReinforceTagline => 'Hapi i fundit i njësisë';
+
+  @override
+  String get introReinforceRow1 => 'Fjala e ditur saktë përforcohet';
+
+  @override
+  String introReinforceRow2(int percent) {
+    return 'Me $percent% të përforcuara hapet njësia e re';
+  }
+
+  @override
   String get introReviewTitle => 'Revansh';
+
+  @override
+  String get introReviewTagline => 'Përsëritja e gabimeve';
+
+  @override
+  String get introReviewRow1 => 'Kartat e gabuara mblidhen këtu';
+
+  @override
+  String get introReviewRow2 => 'Kur korrigjohen të gjitha, fitohet 1 biletë';
 
   @override
   String get articleStepDoneTitle => 'Artikujt u kryen!';

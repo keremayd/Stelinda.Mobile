@@ -31,6 +31,7 @@ import 'package:stelinda/ui/widgets/home_top_bar.dart';
 import 'package:stelinda/ui/widgets/karty_unit_header.dart';
 import 'package:stelinda/ui/widgets/loading_skeleton.dart';
 import 'package:stelinda/ui/widgets/practice_station_marks.dart';
+import 'package:stelinda/ui/widgets/step_intro_sheet.dart';
 import 'package:stelinda/ui/widgets/streak_sheet.dart';
 import 'package:stelinda/ui/widgets/ticket_spend_scene.dart';
 import 'package:provider/provider.dart';
@@ -451,17 +452,45 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  /// Rövanş: ilk kez açılırken ne işe yaradığını söyleyen kart.
   Future<void> _openReview() async {
     if (_starting || _gameOpen) return;
+    final go = await showStepIntroIfFirst(
+      context,
+      StepIntroKind.review,
+      scale: stepIntroScale(context),
+    );
+    if (!go || !mounted) return;
     await _openGame('/kartyreview');
   }
 
-  /// Şu anki düğüme dokunuş: o adımın oyunu; Artikel adımıysa Artikel
-  /// oyunu ünitesiyle açılır.
+  /// Şu anki düğüme dokunuş: o adımın oyunu. Adımın türü ilk kez
+  /// oynanacaksa önce ne işe yaradığını söyleyen kart çıkar.
   Future<void> _continueCurrent() async {
     if (_starting || _gameOpen) return;
     final current = _currentStep();
-    if (current != null && current.$2.article) {
+    final step = current?.$2;
+    final kind = step == null
+        ? null
+        : step.article
+            ? StepIntroKind.article
+            : step.reinforce
+                ? StepIntroKind.reinforce
+                : step.deck != null
+                    ? StepIntroKind.deck
+                    : null;
+    if (kind != null) {
+      final unit = current!.$1;
+      final go = await showStepIntroIfFirst(
+        context,
+        kind,
+        scale: stepIntroScale(context),
+        deckSize: step!.newGoal > 0 ? step.newGoal : 8,
+        unlockPercent: (unit.unlockGoal * 100).round(),
+      );
+      if (!go || !mounted) return;
+    }
+    if (current != null && step!.article) {
       await _startTicketed(
         '/articlepractice',
         arguments: ArticleStepArgs(unit: current.$1.number),

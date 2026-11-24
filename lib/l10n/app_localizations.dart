@@ -218,11 +218,89 @@ abstract class AppLocalizations {
   /// **'Hatan yok'**
   String get pathReviewStationEmpty;
 
+  /// Adımın ilk oyunundan önce çıkan açıklama kartındaki düğme; oyunu açar.
+  ///
+  /// In tr, this message translates to:
+  /// **'BAŞLA'**
+  String get stepIntroStart;
+
+  /// No description provided for @introDeckTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Deste'**
+  String get introDeckTitle;
+
+  /// No description provided for @introDeckTagline.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} yeni kelime'**
+  String introDeckTagline(int count);
+
+  /// No description provided for @introDeckRow1.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kelimeler resimleriyle tanıtılır'**
+  String get introDeckRow1;
+
+  /// No description provided for @introDeckRow2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hepsi bilinince deste biter'**
+  String get introDeckRow2;
+
+  /// No description provided for @introArticleRow1.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kartı doğru artikele sürükle'**
+  String get introArticleRow1;
+
+  /// No description provided for @introArticleRow2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Unutulan artikeller geri gelir'**
+  String get introArticleRow2;
+
+  /// No description provided for @introReinforceTagline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ünitenin son adımı'**
+  String get introReinforceTagline;
+
+  /// No description provided for @introReinforceRow1.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru bilinen kelime pekişir'**
+  String get introReinforceRow1;
+
+  /// No description provided for @introReinforceRow2.
+  ///
+  /// In tr, this message translates to:
+  /// **'%{percent} pekişince yeni ünite açılır'**
+  String introReinforceRow2(int percent);
+
   /// No description provided for @introReviewTitle.
   ///
   /// In tr, this message translates to:
   /// **'Rövanş'**
   String get introReviewTitle;
+
+  /// No description provided for @introReviewTagline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hataların tekrarı'**
+  String get introReviewTagline;
+
+  /// No description provided for @introReviewRow1.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanlış bilinen kartlar toplanır'**
+  String get introReviewRow1;
+
+  /// No description provided for @introReviewRow2.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hepsi düzelince 1 bilet kazanılır'**
+  String get introReviewRow2;
 
   /// Artikel adımının turu bitince.
   ///
