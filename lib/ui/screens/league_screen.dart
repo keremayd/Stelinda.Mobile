@@ -1,3 +1,5 @@
+import 'package:stelinda/ui/widgets/Buttons/app_button_style.dart';
+import 'package:stelinda/ui/widgets/Buttons/depth_pressable_button.dart';
 import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
@@ -36,6 +38,9 @@ class _LeagueScreenState extends State<LeagueScreen>
   static const _cardFaceColor = Color(0xFF041227);
   static const _cardBorderColor = Color(0xFF0B2143);
   static const _rowMeColor = Color(0xFF163258);
+  // Basılabilen satır (başka kullanıcı): ikincil düğmenin malzemesi.
+  static const _rowPressFace = Color(0xFF0C2244);
+  static const _rowPressBase = Color(0xFF07182F);
   static const _textColor = Colors.white;
   static const _mutedTextColor = Color(0xFF8FA0B5);
   static const _firstRankColor = Color(0xFFFFB020);
@@ -339,10 +344,10 @@ class _LeagueScreenState extends State<LeagueScreen>
               : Semantics(
                   button: true,
                   label: context.l10n.leagueMemberOptions(entry.displayName),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
+                  child: _LeaderboardRow(
+                    scale: scale,
+                    entry: entry,
                     onTap: () => _openMember(entry),
-                    child: _LeaderboardRow(scale: scale, entry: entry),
                   ),
                 ),
         ),
@@ -800,107 +805,140 @@ class _LeagueSoloScene extends StatelessWidget {
   }
 }
 
+/// Sıralama satırı. Başka kullanıcının satırı basılabilir (bildir/engelle
+/// penceresi): uygulamanın ortak basılabilir yüzeyi, basınca tabanına çöker.
+/// Kendi satırın basılmaz; vurgulu rengiyle durağan kart, köşesi ve
+/// derinliği basılabilir satırlarla aynı.
 class _LeaderboardRow extends StatelessWidget {
   const _LeaderboardRow({
     required this.scale,
     required this.entry,
+    this.onTap,
   });
 
   final double scale;
   final LeagueLeaderboardEntry entry;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final isMe = entry.isCurrentUser;
-    final faceHeight = 131 * scale - AppShapeStyle.cardDepth(7 * scale);
+    final totalHeight = 131 * scale;
     final depth = AppShapeStyle.cardDepth(7 * scale);
-    final cornerRadius = AppShapeStyle.cardRadius(26 * scale);
-    final radius = BorderRadius.circular(cornerRadius);
+    final legacyRadius = AppShapeStyle.cardRadius(26 * scale);
     final rankColor = entry.rank == 1
         ? _LeagueScreenState._firstRankColor
         : _LeagueScreenState._textColor;
-
-    return SizedBox(
-      height: faceHeight + depth,
-      child: Stack(
+    final content = Padding(
+      padding: EdgeInsets.only(left: 6 * scale, right: 36 * scale),
+      child: Row(
         children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            top: depth,
-            height: faceHeight,
-            child: Container(
-              decoration: BoxDecoration(
-                color: _LeagueScreenState._cardBorderColor,
-                borderRadius: radius,
+          SizedBox(
+            width: 52 * scale,
+            child: Text(
+              '${entry.rank}',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: rankColor,
+                fontSize: 44 * scale,
+                fontWeight: AppTypography.number,
+                fontFamily: AppTypography.family,
               ),
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: faceHeight,
-            child: Container(
-              padding: EdgeInsets.only(left: 6 * scale, right: 36 * scale),
-              decoration: BoxDecoration(
-                color: isMe
-                    ? _LeagueScreenState._rowMeColor
-                    : _LeagueScreenState._cardFaceColor,
-                borderRadius: radius,
+          SizedBox(width: 22 * scale),
+          _RowAvatar(scale: scale, entry: entry),
+          SizedBox(width: 32 * scale),
+          Expanded(
+            child: Text(
+              entry.displayName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _LeagueScreenState._textColor,
+                fontSize: 39 * scale,
+                fontWeight: AppTypography.label,
+                fontFamily: AppTypography.family,
               ),
-              foregroundDecoration: _NoTopBorderDecoration(
-                color: _LeagueScreenState._cardBorderColor,
-                strokeWidth: AppShapeStyle.outline(2 * scale),
-                radius: cornerRadius,
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 52 * scale,
-                    child: Text(
-                      '${entry.rank}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: rankColor,
-                        fontSize: 44 * scale,
-                        fontWeight: AppTypography.number,
-                        fontFamily: AppTypography.family,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 22 * scale),
-                  _RowAvatar(scale: scale, entry: entry),
-                  SizedBox(width: 32 * scale),
-                  Expanded(
-                    child: Text(
-                      entry.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _LeagueScreenState._textColor,
-                        fontSize: 39 * scale,
-                        fontWeight: AppTypography.label,
-                        fontFamily: AppTypography.family,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12 * scale),
-                  Text(
-                    context.l10n.leagueEntryPoints(entry.points),
-                    style: TextStyle(
-                      color: _LeagueScreenState._mutedTextColor,
-                      fontSize: 30 * scale,
-                      fontWeight: AppTypography.number,
-                      fontFamily: AppTypography.family,
-                    ),
-                  ),
-                ],
-              ),
+            ),
+          ),
+          SizedBox(width: 12 * scale),
+          Text(
+            context.l10n.leagueEntryPoints(entry.points),
+            style: TextStyle(
+              color: _LeagueScreenState._mutedTextColor,
+              fontSize: 30 * scale,
+              fontWeight: AppTypography.number,
+              fontFamily: AppTypography.family,
             ),
           ),
         ],
       ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final tap = onTap;
+        if (tap != null) {
+          return DepthPressableButton(
+            width: width,
+            height: totalHeight - depth,
+            radius: legacyRadius,
+            shadowOffset: depth,
+            roundedDepthOverride: depth,
+            backgroundColor: _LeagueScreenState._rowPressFace,
+            shadowColor: _LeagueScreenState._rowPressBase,
+            fontSize: 39 * scale,
+            onPressed: tap,
+            child: SizedBox.expand(child: content),
+          );
+        }
+        final geometry = AppButtonStyle.resolve(
+          width: width,
+          totalHeight: totalHeight,
+          legacyRadius: legacyRadius,
+          legacyDepth: depth,
+          roundedDepthOverride: depth,
+        );
+        final radius = BorderRadius.circular(geometry.radius);
+        return SizedBox(
+          height: totalHeight,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 0,
+                right: 0,
+                top: geometry.depth,
+                height: geometry.faceHeight,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _LeagueScreenState._cardBorderColor,
+                    borderRadius: radius,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: geometry.faceHeight,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _LeagueScreenState._rowMeColor,
+                    borderRadius: radius,
+                  ),
+                  foregroundDecoration: _NoTopBorderDecoration(
+                    color: _LeagueScreenState._cardBorderColor,
+                    strokeWidth: AppShapeStyle.outline(2 * scale),
+                    radius: geometry.radius,
+                  ),
+                  child: content,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
