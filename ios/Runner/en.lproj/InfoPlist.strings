@@ -1,0 +1,3 @@
+/* İngilizce telefonlarda izin pencerelerinin metni (Info.plist'teki Türkçenin karşılığı). */
+"NSCameraUsageDescription" = "Stelinda uses the camera so you can take your profile photo.";
+"NSPhotoLibraryUsageDescription" = "Stelinda accesses your photos so you can choose your profile photo from your library.";

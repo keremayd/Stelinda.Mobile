@@ -1,0 +1,3 @@
+/* İzin pencerelerinin Arnavutça metni (yapay zekâ çevirisi; ana dili Arnavutça biri kontrol etmeli). */
+"NSCameraUsageDescription" = "Stelinda përdor kamerën që të bësh foton e profilit.";
+"NSPhotoLibraryUsageDescription" = "Stelinda hyn te fotot e tua që të zgjedhësh foton e profilit nga galeria.";

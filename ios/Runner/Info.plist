@@ -17,6 +17,7 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>tr</string>
+		<string>en</string>
 		<string>sq</string>
 	</array>
 	<key>CFBundleName</key>
