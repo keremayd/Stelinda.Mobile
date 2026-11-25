@@ -925,7 +925,8 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
       return;
     }
 
-    AppNotifier.showMessage("Karty yüklenirken bir hata oluştu.");
+    if (!mounted) return;
+    AppNotifier.showMessage(context.l10n.kartyLoadError);
   }
 
   void _restartCurrentKarty() {
@@ -1027,7 +1028,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
       duration.value = _secondsFor(kartyProvider.cards.first);
       isFinished.value = false;
       timeBarResetNotifier.value += 1;
-      AppNotifier.showMessage("Bir hata oluştu. Tekrar deneyin.");
+      AppNotifier.showMessage(context.l10n.commonErrorRetry);
     }
   }
 
@@ -1061,11 +1062,11 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
   }
 
   String _promptFor(KartyCardMode mode) => switch (mode) {
-        KartyCardMode.introduce => 'Yeni kelime',
-        KartyCardMode.pickImage => 'Görseli bul',
-        KartyCardMode.pickArticle => 'Artikeli seç',
-        KartyCardMode.arrangeLetters => 'Harfleri diz',
-        KartyCardMode.listen => 'Duyduğunu bul',
+        KartyCardMode.introduce => context.l10n.kartyPromptNewWord,
+        KartyCardMode.pickImage => context.l10n.kartyPromptPickImage,
+        KartyCardMode.pickArticle => context.l10n.kartyPromptPickArticle,
+        KartyCardMode.arrangeLetters => context.l10n.kartyPromptArrange,
+        KartyCardMode.listen => context.l10n.kartyPromptListen,
       };
 
   /// Kartın üstündeki satır: soru cevabı sızdırmayacak biçimde sorulur.
@@ -1117,7 +1118,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
             HourglassMark(size: 84 * scale),
             SizedBox(width: 20 * scale),
             Text(
-              'Süre doldu',
+              context.l10n.kartyTimeUp,
               style: TextStyle(
                 color: const Color(0xFFE9EEF5),
                 fontFamily: AppTypography.displayFamily,
@@ -1129,7 +1130,7 @@ class _KartyQuizScreenState extends State<KartyQuizScreen> {
           SizedBox(height: 24 * scale),
           // Alt yuvada görsel düğmeleri durduğu için yeniden deneme kartta.
           DepthPressableButton(
-            text: 'TEKRAR DENE',
+            text: context.l10n.commonTryAgainCaps,
             width: 260 * scale,
             height: 86 * scale,
             radius: 24 * scale,

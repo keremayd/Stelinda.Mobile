@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/ui/widgets/Buttons/app_icon_control_button.dart';
 import 'package:stelinda/ui/widgets/karty_control_glyphs.dart';
@@ -16,7 +17,7 @@ class AuthBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppIconControlButton(
       scale: scale,
-      label: 'Geri',
+      label: context.l10n.commonBack,
       onPressed: onPressed,
       child: KartyControlMark(
         glyph: KartyControlGlyph.back,

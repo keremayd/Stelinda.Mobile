@@ -168,7 +168,8 @@ class ProfileCard extends StatelessWidget {
         await LegalDocumentScreen.open(context, LegalDocument.privacy);
       case SettingsAction.manageSubscription:
         if (!await SubscriptionManagement.open()) {
-          AppNotifier.showMessage('Abonelik sayfası açılamadı. Tekrar dene.');
+          if (!context.mounted) return;
+          AppNotifier.showMessage(context.l10n.subscriptionOpenFailed);
         }
       case SettingsAction.signOut:
         await AuthService(Dio()).signOut(context);

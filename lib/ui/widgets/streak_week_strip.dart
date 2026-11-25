@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'dart:math' as math;
 
@@ -15,7 +16,8 @@ import 'package:flutter/material.dart';
 /// Bir dönem profil iki harf (`Pt Sa Ça`), ana ekran üç harf (`Pzt Sal Çar`)
 /// yazıyordu; aynı veri iki ayrı biçimde okunuyordu. Üç harfe birleştirildi
 /// (kullanıcı kararı, 3 Kas 2026).
-const kWeekdayLabels = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+List<String> weekdayLabels(BuildContext context) =>
+    context.l10n.weekdaysShort.split(' ');
 
 /// Son 7 günü (dönen sıra, bugün sonda) **bu haftanın Pazartesi–Pazar'ına**
 /// çevirir. Henüz gelmemiş günler `null`.
@@ -113,17 +115,17 @@ class StreakWeekStrip extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         for (var index = 0; index < days.length; index++)
-          _dayColumn(days[index], markerKeys?[index]),
+          _dayColumn(weekdayLabels(context), days[index], markerKeys?[index]),
       ],
     );
   }
 
-  Widget _dayColumn(StreakDay day, GlobalKey? markerKey) {
+  Widget _dayColumn(List<String> labels, StreakDay day, GlobalKey? markerKey) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          kWeekdayLabels[day.date.weekday - 1],
+          labels[day.date.weekday - 1],
           style: TextStyle(
             color: day.isToday ? Colors.white : _muted,
             fontSize: 22 * scale,

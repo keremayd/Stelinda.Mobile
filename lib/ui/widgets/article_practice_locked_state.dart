@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/Buttons/depth_pressable_button.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +97,7 @@ class ArticlePracticeLockedState extends StatelessWidget {
               ),
               SizedBox(height: 45 * scale),
               Text(
-                'Artikel Pusulası hazırlanıyor',
+                context.l10n.articleLockedTitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
@@ -107,7 +108,7 @@ class ArticlePracticeLockedState extends StatelessWidget {
               ),
               SizedBox(height: 20 * scale),
               Text(
-                '$requiredCount farklı Karty öğrenince açılır',
+                context.l10n.articleLockedBody(requiredCount),
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.68),
                   fontSize: 27 * scale,
@@ -140,7 +141,7 @@ class ArticlePracticeLockedState extends StatelessWidget {
               ),
               SizedBox(height: 90 * scale),
               DepthPressableButton(
-                text: 'KARTY OYNA',
+                text: context.l10n.actionPlayKarty,
                 width: 500 * scale,
                 height: 110 * scale,
                 radius: 32 * scale,

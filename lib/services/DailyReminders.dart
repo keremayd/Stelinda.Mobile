@@ -2,6 +2,8 @@ import 'dart:io' show Platform;
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:stelinda/l10n/app_language.dart';
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class DailyReminder {
@@ -23,12 +25,15 @@ const _reminderHour = 20;
 const _reminderDays = 3;
 
 /// Önümüzdeki hatırlatmalar: günde en çok bir tane, o gün oynandıysa ertesi
-/// günden başlar.
+/// günden başlar. Metinler [l10n]'un dilinde; verilmezse seçili dil
+/// ([AppLanguage.current]), çünkü plan widget ağacının dışında kuruluyor.
 List<DailyReminder> planDailyReminders({
   required DateTime now,
   required bool playedToday,
   required int streak,
+  AppLocalizations? l10n,
 }) {
+  final text = l10n ?? _localizations();
   final remindToday =
       !playedToday && now.isBefore(DateTime(now.year, now.month, now.day, _reminderHour));
   final firstDay = remindToday ? 0 : 1;
@@ -43,34 +48,38 @@ List<DailyReminder> planDailyReminders({
         day: day,
         streak: streak,
         streakAlive: streakAlive,
+        l10n: text,
       ),
   ];
 }
+
+AppLocalizations _localizations() => currentL10n;
 
 DailyReminder _reminder(
   DateTime at, {
   required int day,
   required int streak,
   required bool streakAlive,
+  required AppLocalizations l10n,
 }) {
   if (day == 0 && streakAlive) {
     return DailyReminder(
       at: at,
-      title: '$streak günlük serin bekliyor',
-      body: 'Bugün bir oyun oyna, serin devam etsin.',
+      title: l10n.reminderStreakTitle(streak),
+      body: l10n.reminderStreakBody,
     );
   }
   if (day == 1 || (day == 0 && streak > 0)) {
     return DailyReminder(
       at: at,
-      title: 'Seni özledik',
-      body: 'Birkaç kelimeyle kaldığın yerden devam et.',
+      title: l10n.reminderMissedTitle,
+      body: l10n.reminderMissedBody,
     );
   }
   return DailyReminder(
     at: at,
-    title: 'Bugünün kelimeleri hazır',
-    body: 'Günde birkaç dakika yeter.',
+    title: l10n.reminderInviteTitle,
+    body: l10n.reminderInviteBody,
   );
 }
 
@@ -83,16 +92,24 @@ abstract final class DailyReminders {
   static const _askedKey = 'dailyReminderPermissionAsked';
   static const _firstId = 7100;
 
-  static const _details = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'daily_reminder',
-      'Günlük hatırlatma',
-      channelDescription: 'Bugün oynamadıysan günde en çok bir kez hatırlatır.',
-    ),
-    iOS: DarwinNotificationDetails(),
-  );
+  static NotificationDetails _details(AppLocalizations l10n) =>
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_reminder',
+          l10n.reminderChannelName,
+          channelDescription: l10n.reminderChannelDescription,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      );
 
-  static ({DateTime day, bool playedToday, int streak})? _planned;
+  /// Dil de planın parçası: dil değişince bekleyen bildirimler yeni dilde
+  /// yeniden kurulur.
+  static ({
+    DateTime day,
+    bool playedToday,
+    int streak,
+    String language
+  })? _planned;
 
   static Future<void> init() async {
     try {
@@ -144,16 +161,19 @@ abstract final class DailyReminders {
       day: DateTime(now.year, now.month, now.day),
       playedToday: playedToday,
       streak: streak,
+      language: AppLanguage.current,
     );
     if (state == _planned) return;
     _planned = state;
 
     try {
       await _plugin.cancelAll();
+      final l10n = _localizations();
       final plan = planDailyReminders(
         now: now,
         playedToday: playedToday,
         streak: streak,
+        l10n: l10n,
       );
       for (final (index, reminder) in plan.indexed) {
         await _plugin.zonedSchedule(
@@ -161,7 +181,7 @@ abstract final class DailyReminders {
           reminder.title,
           reminder.body,
           tz.TZDateTime.from(reminder.at.toUtc(), tz.UTC),
-          _details,
+          _details(l10n),
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
       }

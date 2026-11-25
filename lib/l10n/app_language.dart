@@ -2,7 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Kullanıcının ana dili: arayüzün, ünite adlarının ve kart anlamlarının
-/// dili. Öğrenilen dil her zaman Almanca (16 Kas 2026: Türkçe ve Arnavutça).
+/// dili. Öğrenilen dil her zaman Almanca (16 Kas 2026: Türkçe ve Arnavutça;
+/// 25 Kas 2026: İngilizce, kullanıcı: "Türkiye'de İngilizce telefon kullanımı
+/// çok yaygın"; telefonun dili İngilizceyse uygulama İngilizce açılır).
 ///
 /// Seçim cihazda saklanır ve her isteğe `Accept-Language` başlığıyla gider
 /// (`TokenInterceptor`); sunucu ünite adını, kart anlamını ve görev
@@ -18,10 +20,14 @@ class AppLanguage extends ChangeNotifier {
   /// Cihazın dili desteklenmiyorsa ve seçim yoksa. Sunucudaki
   /// `LocaleRules.Default` ile aynı.
   static const String defaultCode = 'tr';
-  static const List<String> supported = ['tr', 'sq'];
+  static const List<String> supported = ['tr', 'en', 'sq'];
 
   /// Seçicide her dil kendi adıyla yazılır.
-  static const Map<String, String> endonyms = {'tr': 'Türkçe', 'sq': 'Shqip'};
+  static const Map<String, String> endonyms = {
+    'tr': 'Türkçe',
+    'en': 'English',
+    'sq': 'Shqip',
+  };
 
   static const String _storageKey = 'nativeLanguage';
 

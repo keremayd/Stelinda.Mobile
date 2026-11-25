@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
@@ -99,8 +100,8 @@ class _KartyBoostButtonAffordanceState extends State<KartyBoostButtonAffordance>
       button: true,
       enabled: enabled,
       label: enabled
-          ? 'Boost hazır. 20 saniye 3 kat lig puanı için etkinleştir'
-          : 'Boost enerjisi',
+          ? context.l10n.kartyBoostReadySpoken
+          : context.l10n.kartyBoostEnergySpoken,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: enabled ? (_) => _setPressed(true) : null,

@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:stelinda/providers/ScoreWithLivesProvider.dart';
 import 'package:stelinda/ui/widgets/karty_league_score.dart';
@@ -58,7 +59,9 @@ class KartyTopBar extends StatelessWidget {
       return Row(children: [
         AppIconControlButton(
           scale: scale,
-          label: pauseMenuOpen ? 'Oyuna devam et' : 'Oyunu duraklat',
+          label: pauseMenuOpen
+              ? context.l10n.gameResumeSpoken
+              : context.l10n.gamePauseSpoken,
           enabled: pauseEnabled,
           onPressed: onPause,
           child: KartyControlMark(

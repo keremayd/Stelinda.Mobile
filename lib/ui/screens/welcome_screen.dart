@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -131,7 +132,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       // denendi; maskotun altına sıkışıp ekranın tepesinde
                       // 300px ölü alan bıraktı.
                       Text(
-                        'Almancayı oyunlarla öğren',
+                        context.l10n.welcomeTitle,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: _text,
@@ -143,7 +144,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                       SizedBox(height: 16 * scale),
                       Text(
-                        'Günde birkaç dakika yeter.',
+                        context.l10n.welcomeSubtitle,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: _muted,
@@ -156,7 +157,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                       SizedBox(height: 44 * scale),
                       DepthPressableButton(
-                        text: 'Ücretsiz başla',
+                        text: context.l10n.welcomeStart,
                         width: 654 * scale,
                         height: 96 * scale,
                         radius: 26 * scale,
@@ -170,7 +171,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                       SizedBox(height: 20 * scale),
                       SecondaryActionButton(
-                        text: 'Zaten hesabım var',
+                        text: context.l10n.welcomeHaveAccount,
                         scale: scale,
                         width: 654 * scale,
                         onPressed: () =>

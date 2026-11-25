@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:stelinda/models/responses/word_collection_response.dart';
@@ -31,17 +32,21 @@ class WordCollectionTile extends StatelessWidget {
       'die' => (const Color(0xFFF52A2A), const Color(0xFFAA1C1C)),
       _ => (const Color(0xFFFF9300), const Color(0xFFC97800)),
     };
+    final l10n = context.l10n;
     final (status, statusColor) = category == 'article'
-        ? ('Artikel çalış', const Color(0xFFFFC93A))
+        ? (l10n.wordStatusPracticeArticle, const Color(0xFFFFC93A))
         : category == 'new'
-            ? ('Yeni tanıştın', const Color(0xFF93D334))
+            ? (l10n.wordStatusNew, const Color(0xFF93D334))
             : item.isDue
-                ? ('Tekrar zamanı', const Color(0xFF1CB1F5))
+                ? (l10n.wordStatusDue, const Color(0xFF1CB1F5))
                 : item.isNew
-                    ? ('Yeni tanıştın', const Color(0xFF93D334))
+                    ? (l10n.wordStatusNew, const Color(0xFF93D334))
                     : item.needsArticlePractice
-                        ? ('Artikel çalış', const Color(0xFFFFC93A))
-                        : ('Çalışıldı', const Color(0xFF8FA0B5));
+                        ? (
+                            l10n.wordStatusPracticeArticle,
+                            const Color(0xFFFFC93A)
+                          )
+                        : (l10n.wordStatusStudied, const Color(0xFF8FA0B5));
     return Container(
       height: 224 * scale,
       decoration: _tileDecoration(scale),
@@ -121,11 +126,13 @@ class WordCollectionTile extends StatelessWidget {
                     speaking: active?.kartyId == item.kartyId && speaking,
                     animationTrigger: active?.requestId ?? 0,
                     onToggle: onPlay,
-                    semanticsLabel: '${item.nounText} telaffuzunu dinle',
+                    semanticsLabel: context.l10n.wordListenTo(item.nounText),
                     semanticsHint: muted
-                        ? 'Dinlemek için önce sesi aç'
-                        : 'Telaffuzu yeniden çal',
-                    tooltip: muted ? 'Sesi açıp dinle' : 'Telaffuzu dinle',
+                        ? context.l10n.wordListenHintMuted
+                        : context.l10n.wordListenHintReplay,
+                    tooltip: muted
+                        ? context.l10n.wordListenTipMuted
+                        : context.l10n.wordListenTip,
                   ),
                 ),
               ),

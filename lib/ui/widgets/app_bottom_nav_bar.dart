@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -62,17 +63,18 @@ class AppBottomNavBar extends StatelessWidget {
             child: Row(
               children: [
                 _item((size) => NavMark(kind: NavMarkKind.home, size: size), 0,
-                    'Ana sayfa', scale),
-                _item((size) => TrophyIcon(size: size), 2, 'Ligler', scale),
-                _item(
-                    (size) => QuestFlagMark(size: size), 1, 'Görevler', scale),
+                    context.l10n.navHome, scale),
+                _item((size) => TrophyIcon(size: size), 2,
+                    context.l10n.navLeagues, scale),
+                _item((size) => QuestFlagMark(size: size), 1,
+                    context.l10n.navQuests, scale),
                 // Bilet kare değil (en/boy 1,56): kare ikonlarla aynı ağırlıkta
                 // dursun diye biraz geniş.
                 if (PremiumStore.supported)
                   _item((size) => PremiumTicketMark(width: size * 1.2), 4,
-                      'Premium', scale),
+                      context.l10n.navPremium, scale),
                 _item((size) => NavMark(kind: NavMarkKind.profile, size: size),
-                    3, 'Profil', scale),
+                    3, context.l10n.navProfile, scale),
               ],
             ),
           ),

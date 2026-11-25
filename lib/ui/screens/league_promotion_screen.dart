@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'dart:math' as math;
 
@@ -80,10 +81,16 @@ class _LeaguePromotionScreenState extends State<LeaguePromotionScreen>
 
     setState(() => _isSubmitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Lig bilgisi kaydedilemedi. Tekrar dene.'),
+      SnackBar(
+        content: Text(context.l10n.leagueSaveFailed),
       ),
     );
+  }
+
+  /// Lig adı kullanıcının dilinde; anahtar tanınmazsa gelen ad.
+  String _leagueName(String key, String fallback) {
+    final name = LeagueVisuals.nameOf(key, context.l10n);
+    return name.isEmpty ? fallback : name;
   }
 
   @override
@@ -137,7 +144,7 @@ class _LeaguePromotionScreenState extends State<LeaguePromotionScreen>
                       child: Column(
                         children: [
                           Text(
-                            'LİG ATLADIN',
+                            context.l10n.leaguePromotedLabel,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: const Color(0xFF1CB1F5),
@@ -150,7 +157,9 @@ class _LeaguePromotionScreenState extends State<LeaguePromotionScreen>
                           ),
                           SizedBox(height: 12 * scale),
                           Text(
-                            '${widget.promotion.toLeagueName} Ligi',
+                            context.l10n.leagueNamed(_leagueName(
+                                widget.promotion.toLeagueKey,
+                                widget.promotion.toLeagueName)),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white,
@@ -163,8 +172,9 @@ class _LeaguePromotionScreenState extends State<LeaguePromotionScreen>
                           ),
                           SizedBox(height: 12 * scale),
                           Text(
-                            '${widget.promotion.fromLeagueName} Ligi’nden '
-                            'yükseldin.',
+                            context.l10n.leaguePromotedFrom(_leagueName(
+                                widget.promotion.fromLeagueKey,
+                                widget.promotion.fromLeagueName)),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: const Color(0xFF8FA0B5),
@@ -202,7 +212,7 @@ class _LeaguePromotionScreenState extends State<LeaguePromotionScreen>
                             )
                           : DepthPressableButton(
                               key: const Key('league-promotion-continue'),
-                              text: 'DEVAM ET',
+                              text: context.l10n.actionContinue,
                               width: math.min(386 * scale, width - 44 * scale),
                               height: 66 * scale,
                               radius: 18 * scale,

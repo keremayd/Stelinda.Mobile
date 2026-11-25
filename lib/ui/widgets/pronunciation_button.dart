@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/widgets/Buttons/app_button_style.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/ui/widgets/speaker_mark.dart';
@@ -99,7 +100,9 @@ class _PronunciationButtonState extends State<PronunciationButton>
         builder: (context, muted, child) => Semantics(
           button: true,
           enabled: !muted,
-          label: muted ? 'Telaffuz kapalı' : 'Kelimeyi dinle',
+          label: muted
+              ? context.l10n.pronunciationOff
+              : context.l10n.kartyListenWord,
           child: _buildButton(context, muted),
         ),
       );

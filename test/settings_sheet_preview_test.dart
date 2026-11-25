@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ void main() {
           backgroundColor: const Color(0xFF041227),
           body: Align(
             alignment: Alignment.bottomCenter,
-            child: settings.panel(version: 'Sürüm 1.0.0 (1)'),
+            child: settings.panel(version: '1.0.0 (1)'),
           ),
         ),
       ));
@@ -204,7 +205,8 @@ void main() {
   });
 
   for (final document in LegalDocument.values) {
-    testWidgets('${document.title} metni okunur ve taşmadan çizilir',
+    testWidgets(
+        '${document.titleIn(turkishLocalizations)} metni okunur ve taşmadan çizilir',
         (tester) async {
       tester.view.physicalSize = const Size(375, 667);
       tester.view.devicePixelRatio = 1;
@@ -216,7 +218,7 @@ void main() {
             const Duration(milliseconds: 50),
           ));
       await tester.pump();
-      expect(find.text(document.title), findsOneWidget);
+      expect(find.text(document.titleIn(turkishLocalizations)), findsOneWidget);
       expect(find.textContaining('Son güncelleme'), findsOneWidget);
       expect(find.text('•'), findsWidgets);
       expect(tester.takeException(), isNull);
@@ -276,7 +278,7 @@ void main() {
                     ColoredBox(color: Colors.black.withValues(alpha: 0.55)),
                     Align(
                       alignment: Alignment.bottomCenter,
-                      child: _Settings().panel(version: 'Sürüm 1.0.0 (1)'),
+                      child: _Settings().panel(version: '1.0.0 (1)'),
                     ),
                   ],
                 )),

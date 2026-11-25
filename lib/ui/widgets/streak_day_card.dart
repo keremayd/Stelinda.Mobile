@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
 import 'package:flutter/material.dart';
@@ -219,7 +220,7 @@ class StreakDayCard extends StatelessWidget {
               ),
 
               _flame(),
-              _number(),
+              _number(context),
               _message(),
               _strip(),
             ],
@@ -327,13 +328,13 @@ class StreakDayCard extends StatelessWidget {
     );
   }
 
-  Widget _number() => Positioned(
+  Widget _number(BuildContext context) => Positioned(
         left: _numberLeft * scale,
         // Referansta ölçülen 79 **büyük harfin tepesi**; metin kutusu
         // ondan biraz yukarıda başlıyor.
         top: (_flameTop - 6) * scale,
         child: Text(
-          days == 0 ? '0 Gün' : '$days. Gün',
+          context.l10n.streakDayNumber(days),
           style: TextStyle(
             color: Colors.white,
             fontFamily: AppTypography.displayFamily,
@@ -421,7 +422,7 @@ class _WeekRow extends StatelessWidget {
               SizedBox(
                 width: pitch,
                 child: Text(
-                  kWeekdayLabels[i],
+                  weekdayLabels(context)[i],
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   style: TextStyle(

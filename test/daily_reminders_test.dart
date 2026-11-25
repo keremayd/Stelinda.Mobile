@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stelinda/l10n/app_localizations.dart';
 import 'package:stelinda/services/DailyReminders.dart';
 
 void main() {
@@ -56,5 +58,17 @@ void main() {
     );
 
     expect(reminders.first.at, DateTime(2026, 12, 1, 20));
+  });
+
+  test('İngilizce telefonda bildirim İngilizce', () {
+    final reminders = planDailyReminders(
+      now: DateTime(2026, 11, 9, 10),
+      playedToday: false,
+      streak: 4,
+      l10n: lookupAppLocalizations(const Locale('en')),
+    );
+
+    expect(reminders.first.title, 'Your 4-day streak is waiting');
+    expect(reminders.last.title, "Today's words are ready");
   });
 }

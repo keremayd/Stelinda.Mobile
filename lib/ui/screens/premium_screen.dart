@@ -211,7 +211,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
           children: [
             // İki adımın gökyüzü de durum çubuğunun arkasından başlar.
             PremiumBenefitsView(
-              ctaText: 'DEVAM ET',
+              ctaText: context.l10n.actionContinue,
               entry: widget.entry,
               onContinue: () => _goTo(PremiumStep.plans),
               onClose: widget.onClose ?? () => Navigator.of(context).maybePop(),
@@ -260,12 +260,13 @@ class _PremiumScreenState extends State<PremiumScreen> {
                                   children: [
                                     SizedBox(height: top + 130 * s),
                                     Text(
-                                      'Planını seç',
+                                      context.l10n.premiumChoosePlan,
                                       style: _title(s, Colors.white),
                                     ),
                                     if (offer.trialDays > 0)
                                       Text(
-                                        '${offer.trialDays} gün ücretsiz',
+                                        context.l10n.premiumTrialDaysFree(
+                                            offer.trialDays),
                                         style: _title(s, _green),
                                       ),
                                     SizedBox(height: 10 * s),
@@ -293,14 +294,16 @@ class _PremiumScreenState extends State<PremiumScreen> {
                               children: [
                                 _PlanCard(
                                   scale: s,
-                                  title: 'Yıllık',
-                                  detail:
-                                      'Ayda ${offer.yearlyPerMonth} · %${offer.yearlySavingPercent} tasarruf',
+                                  title: context.l10n.premiumYearly,
+                                  detail: context.l10n.premiumYearlyDetail(
+                                    offer.yearlyPerMonth,
+                                    offer.yearlySavingPercent,
+                                  ),
                                   price: offer.yearlyPrice,
-                                  period: '/ yıl',
+                                  period: context.l10n.premiumPerYear,
                                   // "En çok tercih edilen" yayından önce
                                   // doğrulanamaz; öneri bir iddia değil.
-                                  badge: 'ÖNERİLEN',
+                                  badge: context.l10n.premiumRecommended,
                                   selected: _plan == PremiumPlan.yearly,
                                   onTap: () => setState(
                                       () => _plan = PremiumPlan.yearly),
@@ -308,10 +311,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
                                 SizedBox(height: 28 * s),
                                 _PlanCard(
                                   scale: s,
-                                  title: 'Aylık',
-                                  detail: 'Her ay yenilenir',
+                                  title: context.l10n.premiumMonthly,
+                                  detail: context.l10n.premiumMonthlyDetail,
                                   price: offer.monthlyPrice,
-                                  period: '/ ay',
+                                  period: context.l10n.premiumPerMonth,
                                   selected: _plan == PremiumPlan.monthly,
                                   onTap: () => setState(
                                       () => _plan = PremiumPlan.monthly),
@@ -330,7 +333,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   left: 40 * s,
                   child: AppIconControlButton(
                     scale: s,
-                    label: 'Geri',
+                    label: context.l10n.commonBack,
                     onPressed: () => _goTo(PremiumStep.benefits),
                     child: KartyControlMark(
                       glyph: KartyControlGlyph.back,
@@ -356,9 +359,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
     final store = ios ? 'App Store' : 'Google Play';
     // Fiyat ile para birimi satır sonunda ayrılmasın.
     String price(String value) => value.replaceAll(' ', '\u00A0');
+    final l10n = context.l10n;
     final renewal = _plan == PremiumPlan.yearly
-        ? 'yıllık ${price(offer.yearlyPrice)}'
-        : 'aylık ${price(offer.monthlyPrice)}';
+        ? l10n.premiumRenewalYearly(price(offer.yearlyPrice))
+        : l10n.premiumRenewalMonthly(price(offer.monthlyPrice));
     final ink = _bg.withValues(alpha: 0.6);
     final small = _body(s, size: 21).copyWith(color: ink);
     final link = TextStyle(
@@ -391,7 +395,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
         Text(
           // Açıklama ve yasal metin edilgen: "edersen, etmezsen" gibi
           // senli şart kipleri ucuz duruyordu (kullanıcı).
-          '$store üzerinden her zaman iptal edilebilir.',
+          l10n.premiumCancelAnytime(store),
           textAlign: TextAlign.center,
           style: _body(s, size: 24).copyWith(color: ink),
         ),
@@ -399,8 +403,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
         _primaryButton(
           s,
           text: offer.trialDays > 0
-              ? '${offer.trialDays} GÜN ÜCRETSİZ DENE'
-              : 'PREMIUM\'A GEÇ',
+              ? l10n.premiumTryFree(offer.trialDays)
+              : l10n.premiumGoPremium,
           onPressed: () => widget.onPurchase(_plan),
         ),
         SizedBox(height: 16 * s),
@@ -412,23 +416,17 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 // Abonelik adı satın alma adımında görünür kalır
                 // (App Store 3.1.2): başlıkta artık ürün adı yok.
                 text: offer.trialDays > 0
-                    ? 'Stelinda Premium: ${offer.trialDays} gün ücretsiz, '
-                        'ardından $renewal. Abonelik, deneme süresi ya da '
-                        'dönem bitmeden en az 24 saat önce iptal edilmezse '
-                    : 'Stelinda Premium: $renewal. Abonelik, dönem bitmeden '
-                        'en az 24 saat önce iptal edilmezse ',
+                    ? l10n.premiumTermsTrial(offer.trialDays, renewal)
+                    : l10n.premiumTerms(renewal),
               ),
               TextSpan(
-                text: 'otomatik olarak yenilenir',
+                text: l10n.premiumAutoRenews,
                 style: small.copyWith(
                   color: _bg,
                   fontWeight: AppTypography.label,
                 ),
               ),
-              const TextSpan(
-                text: '. İptal edildiğinde Premium, dönemin sonuna kadar '
-                    'kullanılabilir.',
-              ),
+              TextSpan(text: l10n.premiumTermsEnd),
             ],
           ),
           textAlign: TextAlign.center,
@@ -437,11 +435,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            linkButton('Geri yükle', widget.onRestore),
+            linkButton(l10n.premiumRestore, widget.onRestore),
             dot,
-            linkButton('Kullanım koşulları', widget.onTerms),
+            linkButton(l10n.legalTerms, widget.onTerms),
             dot,
-            linkButton('Gizlilik politikası', widget.onPrivacy),
+            linkButton(l10n.legalPrivacy, widget.onPrivacy),
           ],
         ),
       ],
@@ -472,12 +470,13 @@ class PremiumBenefitsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = MediaQuery.sizeOf(context).width / 750;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    const tickets = (label: 'Sınırsız bilet', free: false);
-    const freeze = (label: 'Haftada 2 seri koruması', free: false);
+    final l10n = context.l10n;
+    final tickets = (label: l10n.premiumUnlimitedTickets, free: false);
+    final freeze = (label: l10n.premiumWeeklyFreezes, free: false);
     final rows = [
       // Duolingo da tabloyu öğrenme içeriğiyle açıyor: ücretsiz kullanıcı
       // dersi kaybetmediğini ilk satırda görür.
-      (label: 'Tüm öğrenme içeriği', free: true),
+      (label: l10n.premiumAllContent, free: true),
       if (entry == PremiumEntry.streak) ...[
         freeze,
         tickets
@@ -519,13 +518,12 @@ class PremiumBenefitsView extends StatelessWidget {
                                 Text.rich(
                                   TextSpan(
                                     children: [
-                                      const TextSpan(
-                                          text: 'Almanca seviyeni\n'),
+                                      TextSpan(text: l10n.premiumHeadlineStart),
                                       TextSpan(
-                                        text: 'bulutların üstüne',
+                                        text: l10n.premiumHeadlineAccent,
                                         style: _title(s, _violet),
                                       ),
-                                      const TextSpan(text: ' çıkar'),
+                                      TextSpan(text: l10n.premiumHeadlineEnd),
                                     ],
                                   ),
                                   textAlign: TextAlign.center,
@@ -533,7 +531,7 @@ class PremiumBenefitsView extends StatelessWidget {
                                 ),
                                 SizedBox(height: 8 * s),
                                 Text(
-                                  'Sınırsız bilet ve seri korumasıyla kesintisiz öğren.',
+                                  l10n.premiumSubtitle,
                                   textAlign: TextAlign.center,
                                   style: _body(s, size: 27).copyWith(
                                       color: _bg.withValues(alpha: 0.6)),
@@ -559,7 +557,7 @@ class PremiumBenefitsView extends StatelessWidget {
                     left: 40 * s,
                     child: AppIconControlButton(
                       scale: s,
-                      label: 'Kapat',
+                      label: context.l10n.commonClose,
                       onPressed: onClose!,
                       child: KartyControlMark(
                         glyph: KartyControlGlyph.cross,
@@ -754,7 +752,7 @@ class _ComparisonTable extends StatelessWidget {
                   SizedBox(
                     width: _freeWidth * s,
                     child: Text(
-                      'ÜCRETSİZ',
+                      context.l10n.premiumFree,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: _muted,

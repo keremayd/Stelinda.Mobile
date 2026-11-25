@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/models/responses/DailyActivityResponse.dart';
 import 'package:stelinda/providers/ScoreWithLivesProvider.dart';
@@ -76,7 +77,7 @@ class _StreakSheet extends StatelessWidget {
               StreakDayCard(
                 scale: s,
                 days: data.streak,
-                message: scene.message,
+                message: scene.messageIn(context.l10n),
                 sceneAsset: scene.asset,
                 sceneAspect: scene.aspect,
                 cardColor: scene.cardColor,

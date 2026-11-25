@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -97,7 +98,7 @@ class QuestRewardCelebration extends StatelessWidget {
                 Opacity(
                   opacity: _textOpacity.clamp(0.0, 1.0),
                   child: Text(
-                    'Görev tamamlandı!',
+                    context.l10n.questDoneTitle,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -144,7 +145,7 @@ class QuestRewardCelebration extends StatelessWidget {
                 Transform.scale(
                   scale: _numberScale.clamp(0.0, 1.4),
                   child: Text(
-                    '+$rewardTickets bilet',
+                    context.l10n.questRewardTickets(rewardTickets),
                     style: TextStyle(
                       color: _gold,
                       fontSize: 54 * scale,

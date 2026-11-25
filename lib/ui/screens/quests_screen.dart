@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -222,7 +223,7 @@ class _QuestsScreenState extends State<QuestsScreen>
     // "0 bilet" görüp ödülü kaybettiğini sanıyordu.
     if (result.blockedByCap) {
       AppNotifier.showMessage(
-        'Biletlerin dolu. Biraz oyna, sonra ödülünü al — görev seni bekliyor.',
+        context.l10n.questsTicketsFull,
       );
       return;
     }
@@ -263,14 +264,17 @@ class _QuestsScreenState extends State<QuestsScreen>
     if (result.blockedByCap) {
       // Talep tüketilmedi: koruma harcanınca aynı gün yine alınabilir.
       AppNotifier.showMessage(
-        'En fazla ${result.freezeCap} seri koruması tutulabilir.',
+        context.l10n.questsFreezeCap(result.freezeCap),
         color: _iconTileColor,
       );
       return;
     }
     if (!result.claimed) return;
 
-    AppNotifier.showMessage('Seri koruması alındı.', color: _iconTileColor);
+    AppNotifier.showMessage(
+      context.l10n.questsFreezeClaimed,
+      color: _iconTileColor,
+    );
     // Koruma sayısı ana ekranın üst şeridiyle senkron kalsın.
     try {
       await Provider.of<UserService>(context, listen: false)
@@ -296,7 +300,7 @@ class _QuestsScreenState extends State<QuestsScreen>
     setState(() {
       _celebratingQuestKey = '__demo__';
       _celebratedTickets = 3;
-      _celebratedTitle = sample?.title ?? '3 günlük seriye ulaş';
+      _celebratedTitle = sample?.title ?? context.l10n.questsDemoTitle;
       _flyFromGlobal = box?.localToGlobal(box.size.center(Offset.zero));
       _pendingTickets = 3;
     });
@@ -435,7 +439,7 @@ class _QuestsScreenState extends State<QuestsScreen>
                       ],
                       SizedBox(height: 36 * scale),
                       _SectionLabel(
-                        'GÜNLÜK GÖREVLER',
+                        context.l10n.questsDaily,
                         scale: scale,
                         trailing: _ResetCountdown(
                           scale: scale,
@@ -513,7 +517,7 @@ class _QuestsScreenState extends State<QuestsScreen>
                 height: allDoneHeight,
                 child: Center(
                   child: Text(
-                    'Bugünün tüm görevlerini bitirdin.',
+                    context.l10n.questsAllDoneToday,
                     style: TextStyle(
                       color: _mutedTextColor,
                       fontSize: 26 * scale,
@@ -536,7 +540,8 @@ class _QuestsScreenState extends State<QuestsScreen>
                   alignment: Alignment.bottomLeft,
                   child: Padding(
                     padding: EdgeInsets.only(bottom: 14 * scale),
-                    child: _SectionLabel('TAMAMLANANLAR', scale: scale),
+                    child: _SectionLabel(context.l10n.questsCompleted,
+                        scale: scale),
                   ),
                 ),
               ),
@@ -596,7 +601,7 @@ class _QuestsTopBar extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              'Görevler',
+              context.l10n.questsTitle,
               maxLines: 1,
               style: TextStyle(
                 color: _QuestsScreenState._textColor,
@@ -690,12 +695,12 @@ class _GoalSceneCard extends StatelessWidget {
   bool get _freezeReady =>
       _freezeShown && freezeBonus!.unlocked && !freezeBonus!.claimed;
 
-  String _caption() {
-    final head = '$_done/${quests.length} görev';
+  String _caption(AppLocalizations l10n) {
+    final head = l10n.questsProgress(_done, quests.length);
     final bonus = freezeBonus;
     if (bonus == null || !_freezeShown) return head;
-    if (bonus.claimed) return 'Seri koruması alındı';
-    return '$head · ödül: seri koruması';
+    if (bonus.claimed) return l10n.questsFreezeTaken;
+    return l10n.questsRewardFreeze(head);
   }
 
   @override
@@ -766,7 +771,7 @@ class _GoalSceneCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'BUGÜNÜN HEDEFİ',
+                    context.l10n.questsGoalLabel,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.86),
                       fontSize: 20 * s,
@@ -778,7 +783,9 @@ class _GoalSceneCard extends StatelessWidget {
                   ),
                   SizedBox(height: 8 * s),
                   Text(
-                    _allDone ? 'Hepsini bitirdin!' : 'Tüm görevleri bitir',
+                    _allDone
+                        ? context.l10n.questsAllDone
+                        : context.l10n.questsFinishAll,
                     maxLines: 1,
                     style: TextStyle(
                       color: Colors.white,
@@ -826,7 +833,7 @@ class _GoalSceneCard extends StatelessWidget {
                     )
                   else
                     Text(
-                      _caption(),
+                      _caption(context.l10n),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.92),
                         fontSize: 21 * s,
@@ -870,7 +877,7 @@ class _FreezeReadyChip extends StatelessWidget {
     final s = scale;
     return Semantics(
       button: true,
-      label: 'Seri koruması hazır, al',
+      label: context.l10n.questsFreezeReadySpoken,
       excludeSemantics: true,
       child: DepthPressableButton(
         width: 268 * s,
@@ -883,7 +890,7 @@ class _FreezeReadyChip extends StatelessWidget {
         enabled: enabled,
         onPressed: onPressed,
         child: Text(
-          'Seri koruması hazır',
+          context.l10n.questsFreezeReady,
           maxLines: 1,
           style: TextStyle(
             color: _ice,
@@ -1013,26 +1020,26 @@ class _ResetCountdown extends StatelessWidget {
   }
 
   /// Büyük harf elle yazılır: `toUpperCase` Türkçe "i"yi "I" yapıyor.
-  String get _value {
+  String _value(AppLocalizations l10n) {
     final remaining = _remaining;
     if (remaining == null) return '';
-    if (remaining.isNegative) return 'YENİLENİYOR';
+    if (remaining.isNegative) return l10n.questsRefreshing;
     if (remaining.inHours > 0) {
       final minutes = remaining.inMinutes - remaining.inHours * 60;
-      return '${remaining.inHours} SA $minutes DK';
+      return l10n.questsHoursMinutesShort(remaining.inHours, minutes);
     }
-    return '${remaining.inMinutes} DK';
+    return l10n.questsMinutesShort(remaining.inMinutes);
   }
 
-  String get _spoken {
+  String _spoken(AppLocalizations l10n) {
     final remaining = _remaining;
     if (remaining == null || remaining.isNegative) {
-      return 'Görevler yenileniyor';
+      return l10n.questsRefreshingSpoken;
     }
     final minutes = remaining.inMinutes - remaining.inHours * 60;
     return remaining.inHours > 0
-        ? 'Görevler ${remaining.inHours} saat $minutes dakika sonra yenilenir'
-        : 'Görevler ${remaining.inMinutes} dakika sonra yenilenir';
+        ? l10n.questsRefreshInHours(remaining.inHours, minutes)
+        : l10n.questsRefreshInMinutes(remaining.inMinutes);
   }
 
   @override
@@ -1040,7 +1047,7 @@ class _ResetCountdown extends StatelessWidget {
     if (resetAtUtc == null) return const SizedBox.shrink();
     final urgent = _urgent;
     return Semantics(
-      label: _spoken,
+      label: _spoken(context.l10n),
       excludeSemantics: true,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1048,7 +1055,7 @@ class _ResetCountdown extends StatelessWidget {
           ClockMark(size: 28 * scale, urgent: urgent),
           SizedBox(width: 8 * scale),
           Text(
-            _value,
+            _value(context.l10n),
             style: TextStyle(
               color: urgent ? _urgentColor : _QuestsScreenState._mutedTextColor,
               fontSize: 21 * scale,
@@ -1442,7 +1449,7 @@ class _QuestCoupon extends StatelessWidget {
               key: stubKey,
               width: stubWidth * s,
               height: _faceHeight * s,
-              child: ready ? _readyStub(s) : _waitingStub(s),
+              child: ready ? _readyStub(s, context.l10n) : _waitingStub(s),
             ),
           ],
         ),
@@ -1474,9 +1481,9 @@ class _QuestCoupon extends StatelessWidget {
   }
 
   /// Hazır ödül: koçanın tamamı dokunulur, bilet kendi basma hareketiyle.
-  Widget _readyStub(double s) => Semantics(
+  Widget _readyStub(double s, AppLocalizations l10n) => Semantics(
         button: true,
-        label: 'Ödülü al: ${quest.rewardTickets} bilet',
+        label: l10n.questsClaimReward(quest.rewardTickets),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: isClaiming ? null : onClaim,
@@ -1501,7 +1508,7 @@ class _QuestCoupon extends StatelessWidget {
               ),
               SizedBox(height: 6 * s),
               Text(
-                'AL',
+                l10n.questsClaimShort,
                 style: TextStyle(
                   color: _QuestsScreenState._progressColor,
                   fontSize: 22 * s,
@@ -1738,14 +1745,14 @@ class _FreezeRewardState extends State<_FreezeReward>
     if (widget.isClaiming) return;
     if (widget.claimed) {
       AppNotifier.showMessage(
-        'Bugünün seri koruması alındı.',
+        context.l10n.questsFreezeTodayClaimed,
         color: _QuestsScreenState._iconTileColor,
       );
       return;
     }
     if (!widget.ready) {
       AppNotifier.showMessage(
-        'Seri koruması tüm görevler bitince alınabilir.',
+        context.l10n.questsFreezeAfterAll,
         color: _QuestsScreenState._iconTileColor,
       );
       return;
@@ -1759,7 +1766,7 @@ class _FreezeRewardState extends State<_FreezeReward>
     final box = _FreezeReward.boxSize * scale;
     return Semantics(
       button: true,
-      label: 'Seri koruması',
+      label: context.l10n.questsFreeze,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: _onTap,
@@ -2182,7 +2189,7 @@ class _ErrorState extends StatelessWidget {
         ),
         SizedBox(height: 24 * scale),
         Text(
-          'Görevler yüklenemedi.\nAşağı çekerek tekrar dene.',
+          context.l10n.questsLoadFailed,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: _QuestsScreenState._mutedTextColor,

@@ -48,7 +48,7 @@ Future<SettingsAction?> showSettingsSheet(BuildContext context) async {
 Future<String?> _appVersion() async {
   try {
     final info = await PackageInfo.fromPlatform();
-    return 'Sürüm ${info.version} (${info.buildNumber})';
+    return '${info.version} (${info.buildNumber})';
   } catch (error) {
     if (kDebugMode) debugPrint('Sürüm okunamadı: $error');
     return null;
@@ -151,7 +151,7 @@ class SettingsSheetPanel extends StatelessWidget {
                   ),
                   SizedBox(height: 34 * s),
                   Text(
-                    'Ayarlar',
+                    context.l10n.settingsTitle,
                     style: TextStyle(
                       color: Colors.white,
                       fontFamily: AppTypography.displayFamily,
@@ -162,14 +162,14 @@ class SettingsSheetPanel extends StatelessWidget {
                   ),
                   SizedBox(height: 36 * s),
                   toggle(
-                    'Ses',
+                    context.l10n.settingsSound,
                     soundMuted,
                     on: (muted) => !muted,
                     onChanged: (on) => onSoundMuted(!on),
                   ),
                   SizedBox(height: 18 * s),
                   toggle(
-                    'Titreşim',
+                    context.l10n.settingsVibration,
                     vibrationOn,
                     on: (enabled) => enabled,
                     onChanged: onVibration,
@@ -177,17 +177,19 @@ class SettingsSheetPanel extends StatelessWidget {
                   // Kümeler arası boşluk: ayarlar, metinler, hesap eylemleri
                   // (abonelik, çıkış, silme).
                   SizedBox(height: 40 * s),
-                  row('Kullanım koşulları', SettingsAction.terms, opens: true),
+                  row(context.l10n.legalTerms, SettingsAction.terms,
+                      opens: true),
                   SizedBox(height: 18 * s),
-                  row('Gizlilik politikası', SettingsAction.privacy,
+                  row(context.l10n.legalPrivacy, SettingsAction.privacy,
                       opens: true),
                   SizedBox(height: 40 * s),
                   if (PremiumStore.supported) ...[
-                    row('Aboneliği yönet', SettingsAction.manageSubscription,
+                    row(context.l10n.settingsManageSubscription,
+                        SettingsAction.manageSubscription,
                         opens: true),
                     SizedBox(height: 18 * s),
                   ],
-                  row('Çıkış yap', SettingsAction.signOut),
+                  row(context.l10n.settingsSignOut, SettingsAction.signOut),
                   SizedBox(height: 18 * s),
                   // Kalıcı eylem düğme yüzü almaz, en altta kırmızı bağlantıdır;
                   // asıl onay bir sonraki pencerede istenir.
@@ -201,7 +203,7 @@ class SettingsSheetPanel extends StatelessWidget {
                         height: 80 * s,
                         child: Center(
                           child: Text(
-                            'Hesabı sil',
+                            context.l10n.settingsDeleteAccount,
                             style: TextStyle(
                               color: _danger,
                               fontFamily: AppTypography.family,
@@ -216,7 +218,7 @@ class SettingsSheetPanel extends StatelessWidget {
                   if (version != null) ...[
                     SizedBox(height: 6 * s),
                     Text(
-                      version!,
+                      context.l10n.settingsVersion(version!),
                       style: TextStyle(
                         color: _muted,
                         fontFamily: AppTypography.family,
@@ -379,10 +381,10 @@ class _AccountDeletionDialogState extends State<_AccountDeletionDialog> {
     setState(() {
       _busy = false;
       _error = switch (result) {
-        null => 'Bağlantı kurulamadı. İnternetini kontrol edip tekrar dene.',
+        null => context.l10n.settingsNoConnection,
         AccountDeletionResult.appleConsentCanceled =>
           context.l10n.accountDeletionAppleCanceled,
-        _ => 'Hesap silinemedi. Tekrar dene.',
+        _ => context.l10n.settingsDeleteFailed,
       };
     });
   }
@@ -467,7 +469,7 @@ class AccountDeletionCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Hesabın silinsin mi?',
+              context.l10n.deleteAccountTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
@@ -479,8 +481,7 @@ class AccountDeletionCard extends StatelessWidget {
             ),
             SizedBox(height: 20 * s),
             Text(
-              'Puanın, serin, öğrendiğin kelimeler ve lig sıralaman kalıcı '
-              'olarak silinir. Bu işlem geri alınamaz.',
+              context.l10n.deleteAccountBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: _muted,
@@ -559,7 +560,7 @@ class AccountDeletionCard extends StatelessWidget {
                       ),
                     )
                   : Text(
-                      'HESABIMI SİL',
+                      context.l10n.deleteAccountConfirm,
                       style: TextStyle(
                         color: Colors.white,
                         fontFamily: AppTypography.family,
@@ -572,7 +573,7 @@ class AccountDeletionCard extends StatelessWidget {
             IgnorePointer(
               ignoring: busy,
               child: SecondaryActionButton(
-                text: 'Vazgeç',
+                text: context.l10n.commonCancel,
                 scale: s,
                 width: buttonWidth,
                 onPressed: onCancel,

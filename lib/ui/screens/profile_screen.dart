@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/providers/ProfileLearningStatsProvider.dart';
 import 'package:stelinda/providers/ScoreWithLivesProvider.dart';
@@ -101,7 +102,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ProfileSectionTitle(
-                      text: 'SIRADAKİ HEDEFLERİN',
+                      text: context.l10n.profileNextGoals,
                       scale: scale,
                     ),
                     SizedBox(height: 15 * scale),
@@ -112,7 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       currentStreak: stats?.currentStreak ?? 0,
                     ),
                     SizedBox(height: 34 * scale),
-                    ProfileSectionTitle(text: 'BUGÜN', scale: scale),
+                    ProfileSectionTitle(
+                        text: context.l10n.profileToday, scale: scale),
                     SizedBox(height: 15 * scale),
                     const ProfileLearningStatsCard(),
                     SizedBox(height: 34 * scale),
@@ -120,18 +122,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Expanded(
                           child: ProfileSectionTitle(
-                            text: 'TOPLAM',
+                            text: context.l10n.profileTotal,
                             scale: scale,
                           ),
                         ),
                         Semantics(
                           button: true,
-                          label: 'Kelimelerim ekranını aç',
+                          label: context.l10n.profileWordsLinkSpoken,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: _openWordCollection,
                             child: Text(
-                              'KELİMELERİM  ›',
+                              context.l10n.profileWordsLink,
                               style: TextStyle(
                                 color: const Color(0xFF1CB1F5),
                                 fontFamily: AppTypography.family,
@@ -220,13 +222,15 @@ class _ProfileSkeleton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ProfileSectionTitle(text: 'SIRADAKİ HEDEFLERİN', scale: s),
+                  ProfileSectionTitle(
+                      text: context.l10n.profileNextGoals, scale: s),
                   SizedBox(height: 15 * s),
                   ProfileSkeletonSurface(
                     child: Column(children: [goalRow(), goalRow()]),
                   ),
                   SizedBox(height: 34 * s),
-                  ProfileSectionTitle(text: 'BUGÜN', scale: s),
+                  ProfileSectionTitle(
+                      text: context.l10n.profileToday, scale: s),
                   SizedBox(height: 15 * s),
                   ProfileSkeletonSurface(
                     radius: 28,
@@ -279,7 +283,8 @@ class _ProfileSkeleton extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 34 * s),
-                  ProfileSectionTitle(text: 'TOPLAM', scale: s),
+                  ProfileSectionTitle(
+                      text: context.l10n.profileTotal, scale: s),
                   SizedBox(height: 15 * s),
                   ProfileSkeletonSurface(
                     child: Padding(

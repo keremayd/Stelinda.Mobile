@@ -425,11 +425,11 @@ class _ArticlePracticeScreenState extends State<ArticlePracticeScreen>
 
   Widget _answerTarget(String article, Color color, Color baseColor,
       double scale, bool enabled) {
-    final label = switch (article) {
-      'der' => 'Der seç',
-      'die' => 'Die seç',
-      _ => 'Das seç',
-    };
+    final label = context.l10n.articlePickSpoken(switch (article) {
+      'der' => 'Der',
+      'die' => 'Die',
+      _ => 'Das',
+    });
     return Semantics(
       button: true,
       enabled: enabled,
@@ -461,7 +461,7 @@ class _ExitButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = math.max(44.0, 84.75 * scale);
     return Semantics(
-      label: 'Oyundan çık',
+      label: context.l10n.gameExit,
       child: DepthPressableButton(
         width: size,
         height: size - 3.125 * scale,
@@ -498,7 +498,12 @@ class _FeedbackPanel extends StatefulWidget {
 class _FeedbackPanelState extends State<_FeedbackPanel> {
   bool _visible = false;
   bool _wrong = false;
+
+  /// Gösterilen geri bildirim: doğruda dile bağlı olmayan "der Tisch",
+  /// yanlışta [_retry]. Metin `build`'de dile çevrilir; `initState`'te
+  /// yerelleştirme okunamaz.
   String _message = '';
+  static const _retry = '\u0000retry';
 
   @override
   void initState() {
@@ -518,9 +523,9 @@ class _FeedbackPanelState extends State<_FeedbackPanel> {
     final nextVisible = isCorrect || isWrong;
     final nextWrong = isWrong ? true : (isCorrect ? false : _wrong);
     final nextMessage = isCorrect
-        ? 'Doğru! ${widget.provider.answerResult?.correctArticle ?? ''} ${widget.nounText}'
+        ? '${widget.provider.answerResult?.correctArticle ?? ''} ${widget.nounText}'
         : isWrong
-            ? 'Tekrar dene'
+            ? _retry
             : _message;
 
     if (_visible == nextVisible &&
@@ -574,7 +579,11 @@ class _FeedbackPanelState extends State<_FeedbackPanel> {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              _message,
+              _message.isEmpty
+                  ? ''
+                  : _message == _retry
+                      ? context.l10n.commonTryAgain
+                      : context.l10n.articleCorrectFeedback(_message.trim()),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 29 * widget.scale,
@@ -629,7 +638,7 @@ class _CompleteState extends StatelessWidget {
             ),
             SizedBox(height: 28 * scale),
             Text(
-              'Harika iş!',
+              context.l10n.articleAllDoneTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
@@ -640,7 +649,7 @@ class _CompleteState extends StatelessWidget {
             ),
             SizedBox(height: 10 * scale),
             Text(
-              'Şimdilik çalışılacak artikel kartı kalmadı.',
+              context.l10n.articleAllDoneBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.72),
@@ -652,7 +661,7 @@ class _CompleteState extends StatelessWidget {
             ),
             SizedBox(height: 34 * scale),
             DepthPressableButton(
-              text: 'ANA MENÜYE DÖN',
+              text: context.l10n.actionMainMenu,
               width: 580 * scale,
               height: 78 * scale,
               radius: 24 * scale,
@@ -798,8 +807,10 @@ class _ErrorState extends StatelessWidget {
         children: [
           Icon(Icons.cloud_off_rounded, color: Colors.white, size: 100 * scale),
           SizedBox(height: 24 * scale),
-          TextButton(onPressed: onRetry, child: const Text('TEKRAR DENE')),
-          TextButton(onPressed: onClose, child: const Text('GERİ DÖN')),
+          TextButton(
+              onPressed: onRetry, child: Text(context.l10n.commonTryAgainCaps)),
+          TextButton(
+              onPressed: onClose, child: Text(context.l10n.commonGoBackCaps)),
         ],
       ),
     );

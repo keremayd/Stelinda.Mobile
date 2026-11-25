@@ -1,8 +1,10 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/models/responses/LeagueProgressResponse.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/Buttons/depth_pressable_button.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
+import 'package:stelinda/ui/widgets/league_badge_mark.dart';
 
 Future<void> showLeagueInfoPopup(
   BuildContext context, {
@@ -49,41 +51,32 @@ class LeagueInfoCard extends StatelessWidget {
   static const _muted = Color(0xFF8FA0B5);
   static const _accent = Color(0xFF1CB1F5);
   static const _accentDepth = Color(0xFF1B84B5);
-  static const _months = [
-    'Ocak',
-    'Şubat',
-    'Mart',
-    'Nisan',
-    'Mayıs',
-    'Haziran',
-    'Temmuz',
-    'Ağustos',
-    'Eylül',
-    'Ekim',
-    'Kasım',
-    'Aralık',
-  ];
 
-  String get _seasonLabel {
+  /// "Kasım 2026 sezonu": ay adı dile göre (Material yerelleştirmesi).
+  String _seasonLabel(BuildContext context) {
+    final l10n = context.l10n;
     final month = league.seasonKey % 100;
     final year = league.seasonKey ~/ 100;
-    if (month < 1 || month > 12) return 'Aylık sezon';
-    return '${_months[month - 1]} $year sezonu';
+    if (month < 1 || month > 12) return l10n.leagueMonthlySeason;
+    // Ay adı ARB'den: Material'ın ay adı yerelleştirme delegesine bağlı,
+    // metinlerle aynı dilde olacağı garanti değil.
+    final monthName = l10n.monthNames.split(' ')[month - 1];
+    return l10n.leagueSeasonOf('$monthName $year');
   }
 
-  String get _remainingLabel {
+  String _remainingLabel(AppLocalizations l10n) {
     final remaining =
         league.seasonEndsAtUtc.difference((now ?? DateTime.now()).toUtc());
-    if (remaining <= Duration.zero) return 'Sezon yenileniyor';
+    if (remaining <= Duration.zero) return l10n.leagueSeasonRenewing;
     if (remaining.inDays > 0) {
       final hours = remaining.inHours - remaining.inDays * 24;
-      return 'Sezon bitimine ${remaining.inDays} gün $hours saat';
+      return l10n.leagueSeasonEndsDays(remaining.inDays, hours);
     }
     if (remaining.inHours > 0) {
       final minutes = remaining.inMinutes - remaining.inHours * 60;
-      return 'Sezon bitimine ${remaining.inHours} saat $minutes dk';
+      return l10n.leagueSeasonEndsHours(remaining.inHours, minutes);
     }
-    return 'Sezon bitimine ${remaining.inMinutes} dk';
+    return l10n.leagueSeasonEndsMinutes(remaining.inMinutes);
   }
 
   @override
@@ -118,7 +111,9 @@ class LeagueInfoCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '${league.leagueName} Ligi',
+              context.l10n.leagueNamed(
+                LeagueVisuals.nameOf(league.leagueKey, context.l10n),
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
@@ -130,7 +125,7 @@ class LeagueInfoCard extends StatelessWidget {
             ),
             SizedBox(height: 12 * scale),
             Text(
-              _seasonLabel,
+              _seasonLabel(context),
               style: TextStyle(
                 color: _muted,
                 fontFamily: AppTypography.family,
@@ -153,7 +148,7 @@ class LeagueInfoCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Lig puanın',
+                      Text(context.l10n.leagueYourPoints,
                           style: _bodyStyle(scale, color: _muted)),
                       Text(
                         '${league.points}',
@@ -180,32 +175,37 @@ class LeagueInfoCard extends StatelessWidget {
                   SizedBox(height: 18 * scale),
                   Text(
                     hasNext
-                        ? '$nextLeagueName için $nextThreshold puan · $pointsLeft puan kaldı'
-                        : 'En üst ligdesin',
+                        ? context.l10n.leagueNextThreshold(
+                            nextLeagueName!,
+                            nextThreshold,
+                            pointsLeft,
+                          )
+                        : context.l10n.leagueTopReached,
                     style: _bodyStyle(scale, color: Colors.white),
                   ),
                 ],
               ),
             ),
             SizedBox(height: 24 * scale),
-            Text(_remainingLabel, style: _bodyStyle(scale, color: _muted)),
+            Text(
+              _remainingLabel(context.l10n),
+              style: _bodyStyle(scale, color: _muted),
+            ),
             SizedBox(height: 30 * scale),
             _rule(
               scale,
-              title: 'Puan nasıl kazanılır?',
-              body:
-                  'Karty’de doğru cevap +1, Boost ile doğru cevap +3 puan verir.',
+              title: context.l10n.leagueHowPointsTitle,
+              body: context.l10n.leagueHowPointsBody,
             ),
             SizedBox(height: 24 * scale),
             _rule(
               scale,
-              title: 'Yeni sezonda ne olur?',
-              body:
-                  'Her ay yeni sezon başlar. Son liginden bir kademe aşağıdan başlarsın; ara verdiğin her ek ay için bir kademe daha düşersin (en az Merkür).',
+              title: context.l10n.leagueNewSeasonTitle,
+              body: context.l10n.leagueNewSeasonBody,
             ),
             SizedBox(height: 36 * scale),
             DepthPressableButton(
-              text: 'ANLADIM',
+              text: context.l10n.commonGotIt,
               width: 594 * scale,
               height: 96 * scale,
               radius: 24 * scale,

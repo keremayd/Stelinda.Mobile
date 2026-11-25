@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/ui/widgets/Buttons/depth_pressable_button.dart';
@@ -50,7 +51,9 @@ class KartyAnswerActions extends StatelessWidget {
           if (!isIntroducing && !isTimedOut) {
             return answers ?? const SizedBox.shrink();
           }
-          final label = isIntroducing ? 'ANLADIM' : 'TEKRAR DENE';
+          final label = isIntroducing
+              ? context.l10n.commonGotIt
+              : context.l10n.commonTryAgainCaps;
           return Semantics(
             label: label,
             child: DepthPressableButton(

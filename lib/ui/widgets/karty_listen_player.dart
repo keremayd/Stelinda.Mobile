@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -104,7 +105,7 @@ class _KartyListenPlayerState extends State<KartyListenPlayer>
       children: [
         Semantics(
           button: true,
-          label: 'Kelimeyi dinle',
+          label: context.l10n.kartyListenWord,
           excludeSemantics: true,
           child: GestureDetector(
             key: const ValueKey('karty-listen'),
@@ -142,7 +143,7 @@ class _KartyListenPlayerState extends State<KartyListenPlayer>
         SizedBox(height: 26 * s),
         Semantics(
           button: true,
-          label: 'Yavaş dinle',
+          label: context.l10n.kartyListenSlow,
           excludeSemantics: true,
           child: DepthPressableButton(
             key: const ValueKey('karty-listen-slow'),

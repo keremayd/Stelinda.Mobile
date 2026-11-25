@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/l10n/app_language.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -55,7 +56,7 @@ class TokenInterceptor extends Interceptor {
         err.type == DioErrorType.sendTimeout ||
         err.type == DioErrorType.receiveTimeout ||
         err.type == DioErrorType.other) {
-      AppNotifier.showMessage("Timeout hatası! Daha sonra tekrar deneyin.");
+      AppNotifier.showMessage(currentL10n.networkTimeout);
 
       return handler.next(err);
     }

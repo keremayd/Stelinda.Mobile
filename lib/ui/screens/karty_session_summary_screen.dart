@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
@@ -160,12 +161,13 @@ class KartySessionSummaryScene extends StatelessWidget {
                                 fit: BoxFit.scaleDown,
                                 child: Text(
                                   summary.practice
-                                      ? 'Pratik tamam!'
+                                      ? context.l10n.summaryPracticeDone
                                       : summary.reinforce
-                                          ? 'Pekiştirme tamam!'
+                                          ? context.l10n.summaryReinforceDone
                                           : summary.deck != null
-                                              ? 'Deste ${summary.deck} tamam!'
-                                              : 'Tekrar tamam!',
+                                              ? context.l10n.summaryDeckDone(
+                                                  summary.deck!)
+                                              : context.l10n.summaryReviewDone,
                                   maxLines: 1,
                                   style: TextStyle(
                                     color: Colors.white,
@@ -183,7 +185,7 @@ class KartySessionSummaryScene extends StatelessWidget {
                                   _phase(t, 0.05, 0.19, Curves.easeOutCubic),
                               distance: 30 * s,
                               child: Text(
-                                _subtitle(summary),
+                                _subtitle(summary, context.l10n),
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
                                 style: TextStyle(
@@ -253,7 +255,7 @@ class KartySessionSummaryScene extends StatelessWidget {
                       distance: 40 * s,
                       child: DepthPressableButton(
                         key: const Key('karty-summary-continue'),
-                        text: 'DEVAM ET',
+                        text: context.l10n.actionContinue,
                         width: 670 * s,
                         height: 112 * s,
                         radius: 26 * s,
@@ -277,8 +279,8 @@ class KartySessionSummaryScene extends StatelessWidget {
                           child: SecondaryActionButton(
                             key: const Key('karty-summary-practice'),
                             text: summary.practice
-                                ? 'BİR TUR DAHA'
-                                : 'PRATİK YAP',
+                                ? context.l10n.summaryOneMoreRound
+                                : context.l10n.summaryPractice,
                             scale: s,
                             width: 670 * s,
                             onPressed: onPractice ?? () {},
@@ -299,12 +301,14 @@ class KartySessionSummaryScene extends StatelessWidget {
   /// "8 kelimeyle tanıştın." Kelimeler destelerde değil ünitenin
   /// pekiştirmesinde pekişir (24 Kas 2026); çubuk destede kıpırdamadığında
   /// neden kıpırdamadığı burada söylenir.
-  static String _subtitle(KartySessionSummary summary) {
+  static String _subtitle(
+    KartySessionSummary summary,
+    AppLocalizations l10n,
+  ) {
     // Pratik pekiştirmiyor: on dakika pratik yapıp ünitenin neden
     // ilerlemediğini sormak zorunda kalınmasın (kullanıcı, 12 Kas 2026).
     if (summary.practice) {
-      return '${summary.words.length} kelimeyle pratik yaptın.\n'
-          'Kelimeler pekiştirmede pekişir.';
+      return l10n.summaryPracticedWords(summary.words.length);
     }
     final consolidated = summary.consolidatedToday;
     if (summary.reinforce) {
@@ -312,18 +316,18 @@ class KartySessionSummaryScene extends StatelessWidget {
       final goal = (unit.wordCount * unit.unlockGoal - 1e-9).ceil();
       final left = goal - unit.consolidatedCount;
       final gained = consolidated > 0
-          ? '$consolidated kelime pekişti.'
-          : 'Bu turda pekişen kelime olmadı.';
-      if (left > 0) return '$gained\nHedefe $left kelime kaldı.';
-      return '$gained\nHedefe ulaştın.';
+          ? l10n.summaryConsolidated(consolidated)
+          : l10n.summaryNoneConsolidated;
+      if (left > 0) return l10n.summaryGoalLeft(gained, left);
+      return l10n.summaryGoalReached(gained);
     }
     final learned = summary.deck != null
-        ? '${summary.newCount} kelimeyle tanıştın'
-        : '${summary.reviewCount} kelimeyi tekrar ettin';
-    if (consolidated > 0) return '$learned, $consolidated kelime pekişti.';
-    if (summary.deck != null) {
-      return '$learned.\nDesteler bitince pekiştirme açılır.';
+        ? l10n.summaryMetWords(summary.newCount)
+        : l10n.summaryReviewedWords(summary.reviewCount);
+    if (consolidated > 0) {
+      return l10n.summaryLearnedConsolidated(learned, consolidated);
     }
+    if (summary.deck != null) return l10n.summaryLearnedDeck(learned);
     return '$learned.';
   }
 }
@@ -586,11 +590,14 @@ class _Stats extends StatelessWidget {
             child: Row(
               children: [
                 _cell(s, PointsStarIcon(size: 48 * s),
-                    '+${counted(summary.points)}', 'PUAN'),
-                _cell(s, QuestCheckMark(size: 46 * s),
-                    '${counted(summary.correct)}/${summary.answered}', 'DOĞRU'),
+                    '+${counted(summary.points)}', context.l10n.statPoints),
+                _cell(
+                    s,
+                    QuestCheckMark(size: 46 * s),
+                    '${counted(summary.correct)}/${summary.answered}',
+                    context.l10n.statCorrect),
                 _cell(s, QuestIcon(questKey: 'review_two', size: 48 * s),
-                    '${counted(summary.revenge)}', 'RÖVANŞ'),
+                    '${counted(summary.revenge)}', context.l10n.statRevenge),
               ],
             ),
           ),
@@ -663,6 +670,7 @@ class _LeagueLine extends StatelessWidget {
       fontWeight: AppTypography.body,
       height: 1.2,
     );
+    final points = context.l10n.pointsCount(note.pointsLeft);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -675,17 +683,17 @@ class _LeagueLine extends StatelessWidget {
         Text.rich(
           TextSpan(
             style: message,
-            children: [
-              TextSpan(text: '${note.nextLeagueName} Ligi\'ne '),
+            children: spansAround(
+              context.l10n.leaguePointsTo(note.nextLeagueName, points),
+              points,
               TextSpan(
-                text: '${note.pointsLeft} puan',
+                text: points,
                 style: message.copyWith(
                   color: _C.accent,
                   fontWeight: AppTypography.number,
                 ),
               ),
-              const TextSpan(text: ' kaldı'),
-            ],
+            ),
           ),
           maxLines: 1,
         ),

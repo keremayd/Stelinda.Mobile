@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 
 /// Yükleme sürerken spinner yerine ekranın kendi düzeni, içleri boş
@@ -44,7 +45,7 @@ class _SkeletonRevealState extends State<SkeletonReveal>
 
   @override
   Widget build(BuildContext context) => Semantics(
-        label: 'Yükleniyor',
+        label: context.l10n.loadingSpoken,
         child: ExcludeSemantics(
           child: FadeTransition(opacity: _opacity, child: widget.child),
         ),

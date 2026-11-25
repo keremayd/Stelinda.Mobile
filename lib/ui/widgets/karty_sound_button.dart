@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -81,11 +82,13 @@ class _KartySoundButtonState extends State<KartySoundButton>
     final size = math.max(44.0, 84.75 * scale);
     return Semantics(
       label: widget.semanticsLabel ??
-          (muted ? 'Telaffuz sesi kapalı' : 'Telaffuz sesi açık'),
-      hint: widget.semanticsHint ?? (muted ? 'Sesi aç' : 'Sesi kapat'),
+          (muted ? context.l10n.soundOffSpoken : context.l10n.soundOnSpoken),
+      hint: widget.semanticsHint ??
+          (muted ? context.l10n.soundTurnOn : context.l10n.soundTurnOff),
       toggled: widget.semanticsLabel == null ? !muted : null,
       child: Tooltip(
-        message: widget.tooltip ?? (muted ? 'Sesi aç' : 'Sesi kapat'),
+        message: widget.tooltip ??
+            (muted ? context.l10n.soundTurnOn : context.l10n.soundTurnOff),
         child: DepthPressableButton(
           width: size,
           height: size - 3.125 * scale,

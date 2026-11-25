@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
 import 'dart:math' as math;
@@ -403,8 +404,8 @@ class _StreakAtRiskCardState extends State<StreakAtRiskCard>
   Widget _title(double scale) {
     return Text(
       _resolved
-          ? 'Serin korundu!'
-          : '${widget.currentStreak} günlük serin tehlikede',
+          ? context.l10n.streakProtected
+          : context.l10n.streakAtRiskTitle(widget.currentStreak),
       key: ValueKey('title-$_resolved'),
       textAlign: TextAlign.center,
       style: TextStyle(
@@ -418,15 +419,9 @@ class _StreakAtRiskCardState extends State<StreakAtRiskCard>
   }
 
   Widget _subtitle(double scale) {
-    final many = widget.missedDays > 1;
     final text = _resolved
-        ? (many
-            ? '${widget.missedDays} gün ara verdin ama seri koruman devreye '
-                'girdi.'
-            : 'Bir gün ara verdin ama seri koruman devreye girdi.')
-        : (many
-            ? '${widget.missedDays} gün ara verdin. Seri koruman kullanılsın mı?'
-            : 'Bir gün ara verdin. Seri koruman kullanılsın mı?');
+        ? context.l10n.streakFreezeKicked(widget.missedDays)
+        : context.l10n.streakFreezeAsk(widget.missedDays);
 
     return Text(
       text,
@@ -459,9 +454,7 @@ class _StreakAtRiskCardState extends State<StreakAtRiskCard>
         SizedBox(width: 10 * scale),
         Flexible(
           child: Text(
-            widget.missedDays > 1
-                ? '${widget.missedDays} koruma harcanır, $left kalır'
-                : '1 koruma harcanır, $left kalır',
+            context.l10n.streakFreezeCost(math.max(1, widget.missedDays), left),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -494,7 +487,7 @@ class _StreakAtRiskCardState extends State<StreakAtRiskCard>
             child: _metric(
               scale,
               value: '${result.currentStreak}',
-              label: 'günlük seri',
+              label: context.l10n.streakDayStreakLabel,
               color: _flame,
             ),
           ),
@@ -503,7 +496,7 @@ class _StreakAtRiskCardState extends State<StreakAtRiskCard>
             child: _metric(
               scale,
               value: '${result.freezeCount}',
-              label: 'koruma kaldı',
+              label: context.l10n.streakFreezesLeftLabel,
               color: _ice,
             ),
           ),
@@ -549,7 +542,7 @@ class _StreakAtRiskCardState extends State<StreakAtRiskCard>
     if (_resolved) {
       return DepthPressableButton(
         key: const ValueKey('actions-done'),
-        text: 'DEVAM ET',
+        text: context.l10n.actionContinue,
         width: _contentWidth * scale,
         height: 96 * scale,
         radius: 24 * scale,
@@ -573,7 +566,7 @@ class _StreakAtRiskCardState extends State<StreakAtRiskCard>
           mainAxisSize: MainAxisSize.min,
           children: [
             DepthPressableButton(
-              text: 'KORUMAYI KULLAN',
+              text: context.l10n.streakUseFreeze,
               width: _contentWidth * scale,
               height: 96 * scale,
               radius: 24 * scale,
@@ -594,7 +587,7 @@ class _StreakAtRiskCardState extends State<StreakAtRiskCard>
                 foregroundColor: _muted,
               ),
               child: Text(
-                'GEREK YOK, SERİ SIFIRLANSIN',
+                context.l10n.streakDeclineFreeze,
                 style: TextStyle(
                   color: _muted,
                   fontSize: 25 * scale,

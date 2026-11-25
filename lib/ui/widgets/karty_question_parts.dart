@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -176,7 +177,7 @@ class _OptionTileState extends State<_OptionTile>
     return Semantics(
       button: true,
       enabled: widget.enabled,
-      label: 'Görsel seçeneği',
+      label: context.l10n.kartyImageOption,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 180),
         opacity: widget.dim ? .42 : 1,
@@ -429,13 +430,13 @@ class KartyLetterSlots extends StatelessWidget {
               KartyArticleBadge(article: article, scale: s),
               SizedBox(width: 14 * s),
               for (var i = 0; i < letters.length; i++)
-                _letterSlot(s, slot, i),
+                _letterSlot(context, s, slot, i),
             ],
           );
         },
       );
 
-  Widget _letterSlot(double s, double width, int index) {
+  Widget _letterSlot(BuildContext context, double s, double width, int index) {
     final answering = state == KartyLettersState.answering;
     final filled = index < placed.length;
     // Sonuçta doğru yazılış görünür; yanlış harf konmuş yuva kırmızıdır.
@@ -478,7 +479,7 @@ class KartyLetterSlots extends StatelessWidget {
     if (!answering || !filled || remove == null) return slot;
     return Semantics(
       button: true,
-      label: '${placed[index]} harfini geri al',
+      label: context.l10n.kartyRemoveLetter(placed[index]),
       excludeSemantics: true,
       child: GestureDetector(
         key: ValueKey('karty-slot-$index'),

@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -188,7 +189,7 @@ class AuthService {
 
     userProvider.clearUser();
 
-    AppNotifier.showMessage("Başarıyla çıkış yapıldı. Tekrar görüşmek üzere...", color: Colors.green);
+    AppNotifier.showMessage(currentL10n.signedOut, color: Colors.green);
   }
 
   /// Hesap sunucuda silindikten sonra: uygulama baştan (hoş geldin ekranı)
@@ -205,7 +206,7 @@ class AuthService {
 
     userProvider.clearUser();
 
-    AppNotifier.showMessage("Hesabın silindi.", color: Colors.green);
+    AppNotifier.showMessage(currentL10n.accountDeleted, color: Colors.green);
   }
   
   Future<ApiResponse<AuthenticateResponse>> signInWithGoogle(BuildContext context) async {

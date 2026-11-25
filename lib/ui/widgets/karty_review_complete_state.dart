@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +92,7 @@ class _KartyReviewCompleteStateState extends State<KartyReviewCompleteState>
                 interval: const Interval(0.30, 0.60),
                 offset: const Offset(0, 0.22),
                 child: Text(
-                  'Rövanşı tamamladın!',
+                  context.l10n.reviewDoneTitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
@@ -108,7 +109,7 @@ class _KartyReviewCompleteStateState extends State<KartyReviewCompleteState>
                 interval: const Interval(0.40, 0.70),
                 offset: const Offset(0, 0.20),
                 child: Text(
-                  'Karty\'lerle yeniden karşılaştın ve öğrendiklerini güçlendirdin.',
+                  context.l10n.reviewDoneBody,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.74),
@@ -156,8 +157,9 @@ class _KartyReviewCompleteStateState extends State<KartyReviewCompleteState>
                       SizedBox(width: 10 * scale),
                       Text(
                         widget.rewardTickets > 0
-                            ? '+${widget.rewardTickets} bilet kazandın'
-                            : 'Bilgilerin güçlendi',
+                            ? context.l10n
+                                .reviewDoneTickets(widget.rewardTickets)
+                            : context.l10n.reviewDoneStronger,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 23 * scale,
@@ -175,7 +177,7 @@ class _KartyReviewCompleteStateState extends State<KartyReviewCompleteState>
                 interval: const Interval(0.68, 1),
                 offset: const Offset(0, 0.18),
                 child: DepthPressableButton(
-                  text: 'ANA MENÜYE DÖN',
+                  text: context.l10n.actionMainMenu,
                   width: 410 * scale,
                   height: 82 * scale,
                   radius: 22 * scale,

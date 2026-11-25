@@ -1,3 +1,5 @@
+import 'package:stelinda/l10n/app_language.dart';
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:stelinda/ui/app_typography.dart';
@@ -5,13 +7,21 @@ import 'package:stelinda/ui/widgets/Buttons/app_icon_control_button.dart';
 import 'package:stelinda/ui/widgets/Buttons/auth_back_button.dart';
 
 enum LegalDocument {
-  terms('Kullanım koşulları', 'assets/legal/kullanim_kosullari.md'),
-  privacy('Gizlilik politikası', 'assets/legal/gizlilik_politikasi.md');
+  terms('assets/legal/kullanim_kosullari.md', 'assets/legal/terms_en.md'),
+  privacy('assets/legal/gizlilik_politikasi.md', 'assets/legal/privacy_en.md');
 
-  const LegalDocument(this.title, this.asset);
+  const LegalDocument(this.asset, this.englishAsset);
 
-  final String title;
+  /// Türkçe metin (kaynak: stelinda.com).
   final String asset;
+
+  /// İngilizce çevirisi. Arnavutça henüz yok, Türkçe gösterilir.
+  final String englishAsset;
+
+  String titleIn(AppLocalizations l10n) =>
+      this == terms ? l10n.legalTerms : l10n.legalPrivacy;
+
+  String assetFor(String language) => language == 'en' ? englishAsset : asset;
 }
 
 /// Kullanım koşulları ve gizlilik politikası. Metin asset'ten okunur:
@@ -39,7 +49,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
 
   late final Future<String> _content = widget.text != null
       ? Future.value(widget.text)
-      : rootBundle.loadString(widget.document.asset);
+      : rootBundle.loadString(widget.document.assetFor(AppLanguage.current));
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +79,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                     ),
                   ),
                   Text(
-                    widget.document.title,
+                    widget.document.titleIn(context.l10n),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,

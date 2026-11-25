@@ -534,7 +534,7 @@ class _LeagueHeaderPanel extends StatelessWidget {
                       ),
                       AppIconControlButton(
                         scale: scale,
-                        label: 'Lig ve sezon bilgisi',
+                        label: context.l10n.leagueInfoButton,
                         enabled: onInfoPressed != null,
                         onPressed: onInfoPressed ?? () {},
                         child: Icon(
@@ -558,7 +558,7 @@ class _LeagueHeaderPanel extends StatelessWidget {
                   // ortalı (eskiden düğmeyi dengelemek için solda görünmez bir
                   // boşluk vardı).
                   Text(
-                    '$displayedName Ligi',
+                    context.l10n.leagueNamed(displayedName),
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
@@ -646,18 +646,21 @@ class _LeagueProgress extends StatelessWidget {
             TextSpan(
               style: message,
               children: isTopLeague
-                  ? const [TextSpan(text: 'En üst ligdesin')]
-                  : [
-                      TextSpan(text: '$nextLeagueName Ligi\'ne '),
+                  ? [TextSpan(text: context.l10n.leagueTopReached)]
+                  : spansAround(
+                      context.l10n.leaguePointsTo(
+                        nextLeagueName!,
+                        context.l10n.pointsCount(pointsLeft),
+                      ),
+                      context.l10n.pointsCount(pointsLeft),
                       TextSpan(
-                        text: '$pointsLeft puan',
+                        text: context.l10n.pointsCount(pointsLeft),
                         style: message.copyWith(
                           color: _fill,
                           fontWeight: AppTypography.number,
                         ),
                       ),
-                      const TextSpan(text: ' kaldı'),
-                    ],
+                    ),
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -714,15 +717,16 @@ class _SeasonCountdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final remaining = league.seasonEndsAtUtc.difference(DateTime.now().toUtc());
 
+    final l10n = context.l10n;
     final String value;
     if (remaining <= Duration.zero) {
-      value = 'Yenileniyor';
+      value = l10n.countdownRenewing;
     } else if (remaining.inDays > 0) {
-      value = '${remaining.inDays} gün';
+      value = l10n.countdownDays(remaining.inDays);
     } else if (remaining.inHours > 0) {
-      value = '${remaining.inHours} sa';
+      value = l10n.countdownHours(remaining.inHours);
     } else {
-      value = '${remaining.inMinutes} dk';
+      value = l10n.countdownMinutes(remaining.inMinutes);
     }
 
     return Align(
@@ -731,7 +735,7 @@ class _SeasonCountdown extends StatelessWidget {
         scale: scale,
         value: value,
         urgent: remaining > Duration.zero && remaining.inHours < 2,
-        semanticLabel: 'Sezonun bitmesine $value',
+        semanticLabel: l10n.leagueSeasonEndsIn(value),
       ),
     );
   }
@@ -764,11 +768,11 @@ class _LeagueSoloScene extends StatelessWidget {
             // menünün üstünde, kaydırmadan sığsın (560'ta alt satır menünün
             // altına kayıyordu).
             width: 470 * scale,
-            semanticLabel: 'Lig gezegenine bayrak diken maskot',
+            semanticLabel: context.l10n.leagueSoloSceneLabel,
           ),
           SizedBox(height: 6 * scale),
           Text(
-            '$leagueName Ligi\'ne ilk sen ulaştın',
+            context.l10n.leagueFirstToReach(leagueName),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _LeagueScreenState._textColor,
@@ -780,7 +784,7 @@ class _LeagueSoloScene extends StatelessWidget {
           ),
           SizedBox(height: 10 * scale),
           Text(
-            'Yeni rakipler yolda.',
+            context.l10n.leagueRivalsComing,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _LeagueScreenState._mutedTextColor,
@@ -883,7 +887,7 @@ class _LeaderboardRow extends StatelessWidget {
                   ),
                   SizedBox(width: 12 * scale),
                   Text(
-                    '${entry.points} Puan',
+                    context.l10n.leagueEntryPoints(entry.points),
                     style: TextStyle(
                       color: _LeagueScreenState._mutedTextColor,
                       fontSize: 30 * scale,

@@ -660,7 +660,7 @@ class _BackToCurrentButton extends StatelessWidget {
           curve: Curves.easeOutCubic,
           child: AppIconControlButton(
             scale: scale,
-            label: 'Bulunduğun desteye dön',
+            label: context.l10n.pathBackToCurrent,
             onPressed: onPressed,
             // Geri oku sola bakar: çeyrek tur yukarı, üç çeyrek aşağı.
             child: RotatedBox(
@@ -863,7 +863,12 @@ class _KartyPathBody extends StatelessWidget {
     final children = <Widget>[
       Positioned.fill(
         child: CustomPaint(
-          painter: _PathPainter(layout: layout, scale: s, arrival: a),
+          painter: _PathPainter(
+            layout: layout,
+            scale: s,
+            arrival: a,
+            l10n: context.l10n,
+          ),
         ),
       ),
       for (final header in layout.headers)
@@ -878,7 +883,8 @@ class _KartyPathBody extends StatelessWidget {
                 a != null && a.unit == header.unit.number ? a.header : null,
           ),
         ),
-      for (final (i, gate) in layout.gates.indexed) ..._gate(gate, i, s),
+      for (final (i, gate) in layout.gates.indexed)
+        ..._gate(gate, i, s, context.l10n),
       for (final node in layout.nodes) ..._node(node, s, context.l10n),
     ];
 
@@ -1055,24 +1061,29 @@ class _KartyPathBody extends StatelessWidget {
         _ => l10n.pathArticleDetail,
       };
     }
-    final reviews = '${step.reviewCount} tekrar';
+    final reviews = l10n.pathReviewCount(step.reviewCount);
     switch (step.state) {
       case KartyStepState.done:
-        return '${step.newGoal} kelime';
+        return l10n.pathWordCount(step.newGoal);
       case KartyStepState.current:
         if (step.newGoal == 0) {
-          return step.reviewCount > 0 ? reviews : 'Pratik';
+          return step.reviewCount > 0 ? reviews : l10n.pathPractice;
         }
-        final fresh = '${step.learnedCount}/${step.newGoal} yeni';
+        final fresh = l10n.pathNewProgress(step.learnedCount, step.newGoal);
         return step.reviewCount > 0 ? '$fresh · $reviews' : fresh;
       case KartyStepState.upcoming:
-        return '${step.newGoal} yeni kelime';
+        return l10n.pathNewWords(step.newGoal);
       case KartyStepState.locked:
         return '';
     }
   }
 
-  List<Widget> _gate(_GateSpot gate, int index, double s) {
+  List<Widget> _gate(
+    _GateSpot gate,
+    int index,
+    double s,
+    AppLocalizations l10n,
+  ) {
     final unit = gate.unit;
     final geo = _NodeGeometry(_PathLayout.gateWidth);
     final left = gate.center.dx - _PathLayout.gateWidth / 2;
@@ -1144,7 +1155,8 @@ class _KartyPathBody extends StatelessWidget {
             onTap: onContinue,
             child: _CenteredLabel(
               title: focus.step.label,
-              detail: '${unit.consolidatedCount}/${unit.wordCount} kelime',
+              detail: l10n.pathWordsProgress(
+                  unit.consolidatedCount, unit.wordCount),
               accent: true,
               scale: s,
             ),
@@ -1156,8 +1168,9 @@ class _KartyPathBody extends StatelessWidget {
           width: (750 - 24 - labelLeft) * s,
           top: (gate.center.dy - 44) * s,
           child: _NodeLabel(
-            title: 'Pekiştirme',
-            detail: '${unit.consolidatedCount}/${unit.wordCount} kelime',
+            title: l10n.pathReinforce,
+            detail:
+                l10n.pathWordsProgress(unit.consolidatedCount, unit.wordCount),
             // Varılmamış kapı sıradaki deste gibi sönük başlıklı; varılmış
             // kapı bitmiş deste gibi açık başlık, sönük ayrıntı.
             state: waiting ? KartyStepState.upcoming : KartyStepState.done,
@@ -1892,11 +1905,19 @@ class _Arrival {
 /// sarar; halkadaki her taş ünitenin bir kelimesi, pekişen kelime kadar taş
 /// yeşil yanar.
 class _PathPainter extends CustomPainter {
-  _PathPainter({required this.layout, required this.scale, this.arrival});
+  _PathPainter({
+    required this.layout,
+    required this.scale,
+    required this.l10n,
+    this.arrival,
+  });
 
   final _PathLayout layout;
   final double scale;
   final _Arrival? arrival;
+
+  /// Hedef çentiğinin yüzdesi dile göre yazılır (%80 · 80%).
+  final AppLocalizations l10n;
 
   // Yoldaki taş: iz yönünde uzanan tombul kapsül.
   static const _stoneLength = 30.0;
@@ -2120,7 +2141,7 @@ class _PathPainter extends CustomPainter {
     }
     final label = TextPainter(
       text: TextSpan(
-        text: '%${(unit.unlockGoal * 100).round()}',
+        text: l10n.pathGoalPercent((unit.unlockGoal * 100).round()),
         style: TextStyle(
           color: _C.value,
           fontSize: 22 * s,
@@ -2278,9 +2299,12 @@ class _PathNode extends StatelessWidget {
       face: face,
       depth: depth,
       label: switch (step.state) {
-        KartyStepState.done => '${step.label}, tamamlandı',
-        KartyStepState.current => '${step.label}, ${_actionOf(step).spoken}',
-        _ => step.article ? 'Sıradaki Artikel tekrarı' : 'Sıradaki deste',
+        KartyStepState.done => context.l10n.pathNodeDone(step.label),
+        KartyStepState.current =>
+          '${step.label}, ${_actionOf(step, context.l10n).spoken}',
+        _ => step.article
+            ? context.l10n.pathNextArticle
+            : context.l10n.pathNextDeck,
       },
       onTap: onTap,
       // Biten deste şimşek yerine onay taşır (23 Kas 2026, kullanıcı:
@@ -2426,10 +2450,10 @@ class _GateNode extends StatelessWidget {
               ? _C.accentDepth
               : (dimmed ? _C.base : _C.panel),
       label: ready
-          ? 'Ünite sonu, hedefe ulaşıldı'
+          ? context.l10n.pathGateDone
           : current
-              ? 'Pekiştirme, oyna'
-              : 'Ünite sonu, pekiştirme',
+              ? context.l10n.pathGatePlay
+              : context.l10n.pathGateLocked,
       onTap: onTap,
       // Hedefe ulaşan kapı geçilen düğümler gibi yeşile döner; yeşil dönüş oku
       // yeşil yüzde kaybolacağı için yerine beyaz onay.
@@ -2546,17 +2570,18 @@ typedef _StepAction = ({String label, String spoken});
 
 /// Şu anki adımın eylemi: başlanmamış deste BAŞLA, yarım deste DEVAM ET;
 /// desteler bittiyse vadesi gelen tekrar varken TEKRAR ET, yoksa PRATİK.
-_StepAction _actionOf(KartyStep step) => step.article
-    ? step.learnedCount > 0
-        ? (label: 'DEVAM ET', spoken: 'Devam et')
-        : (label: 'BAŞLA', spoken: 'Başla')
-    : step.newGoal == 0
-        ? step.reviewCount > 0
-            ? (label: 'TEKRAR ET', spoken: 'Tekrar et')
-            : (label: 'PRATİK', spoken: 'Pratik yap')
-        : step.newCount > 0
-            ? (label: 'DEVAM ET', spoken: 'Devam et')
-            : (label: 'BAŞLA', spoken: 'Başla');
+_StepAction _actionOf(KartyStep step, AppLocalizations l10n) {
+  final proceed =
+      (label: l10n.actionContinue, spoken: l10n.actionContinueSpoken);
+  final start = (label: l10n.actionStart, spoken: l10n.actionStartSpoken);
+  if (step.article) return step.learnedCount > 0 ? proceed : start;
+  if (step.newGoal == 0) {
+    return step.reviewCount > 0
+        ? (label: l10n.actionReview, spoken: l10n.actionReviewSpoken)
+        : (label: l10n.actionPractice, spoken: l10n.actionPracticeSpoken);
+  }
+  return step.newCount > 0 ? proceed : start;
+}
 
 class _DueBadge extends StatelessWidget {
   const _DueBadge({required this.count, required this.scale});
@@ -2568,7 +2593,7 @@ class _DueBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = 46 * scale;
     return Semantics(
-      label: '$count kelime tekrar bekliyor',
+      label: context.l10n.pathDueBadge(count),
       excludeSemantics: true,
       child: Container(
         width: size,
@@ -2793,8 +2818,8 @@ class KartyStepSheet extends StatelessWidget {
               _SheetHeader(step: step, scale: s),
               SizedBox(height: 32 * s),
               ...switch (step.state) {
-                KartyStepState.upcoming => _upcoming(s),
-                _ => _words(s),
+                KartyStepState.upcoming => _upcoming(s, context.l10n),
+                _ => _words(s, context.l10n),
               },
             ],
           ),
@@ -2803,7 +2828,7 @@ class KartyStepSheet extends StatelessWidget {
     );
   }
 
-  List<Widget> _words(double s) {
+  List<Widget> _words(double s, AppLocalizations l10n) {
     final rows = step.words.take(_visibleRows).toList();
     final rest = step.words.length - rows.length;
     final current = step.state == KartyStepState.current;
@@ -2811,10 +2836,8 @@ class KartyStepSheet extends StatelessWidget {
       if (current && rows.isEmpty) ...[
         _Explainer(
           text: step.newGoal > 0
-              ? 'Bu destenin ${step.newGoal} yeni kelimesi seni bekliyor.'
-              : 'Bu ünitenin desteleri bitti. Sıradaki ünite, kelimelerin '
-                  '%${(unit.unlockGoal * 100).round()}\'i pekişince açılır; '
-                  'tekrarlar onları pekiştiriyor.',
+              ? l10n.pathSheetDeckWaiting(step.newGoal)
+              : l10n.pathSheetUnitDone((unit.unlockGoal * 100).round()),
           scale: s,
         ),
         SizedBox(height: 28 * s),
@@ -2827,7 +2850,7 @@ class KartyStepSheet extends StatelessWidget {
         Padding(
           padding: EdgeInsets.only(top: 8 * s),
           child: Text(
-            '+$rest kelime daha',
+            l10n.pathMoreWords(rest),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _C.accent,
@@ -2841,7 +2864,7 @@ class KartyStepSheet extends StatelessWidget {
         SizedBox(height: 26 * s),
         _SheetContinueButton(
           scale: s,
-          action: _actionOf(step),
+          action: _actionOf(step, l10n),
           onPressed: onContinue!,
         ),
       ],
@@ -2850,16 +2873,16 @@ class KartyStepSheet extends StatelessWidget {
 
   /// Sıradaki deste: kelimeleri belli (deste herkes için aynı), kendisi
   /// önceki deste bitince açılır. Kelimeler silüet.
-  List<Widget> _upcoming(double s) {
+  List<Widget> _upcoming(double s, AppLocalizations l10n) {
     return [
       _Explainer(
         text: step.deck != null && step.deck! > 1
-            ? 'Deste ${step.deck! - 1} bitince açılır.'
-            : 'Önceki ünite bitince açılır.',
+            ? l10n.pathOpensAfterDeck(step.deck! - 1)
+            : l10n.pathOpensAfterUnit,
         scale: s,
       ),
       SizedBox(height: 34 * s),
-      _SectionTitle(text: 'Tanışacağın ${step.newGoal} kelime', scale: s),
+      _SectionTitle(text: l10n.pathWordsToMeet(step.newGoal), scale: s),
       SizedBox(height: 18 * s),
       GridView.count(
         crossAxisCount: 4,
@@ -2955,13 +2978,21 @@ class _SheetHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = scale;
     final consolidated = step.words.where((word) => word.consolidated).length;
+    final l10n = context.l10n;
     final subtitle = switch (step.state) {
-      KartyStepState.done => '${step.words.length} kelimeyle tanıştın · '
-          '$consolidated\'${_suffix(consolidated)} pekişti',
+      KartyStepState.done => l10n.pathSheetDoneSummary(
+          step.words.length,
+          consolidated,
+          "'${_suffix(consolidated)}",
+        ),
       KartyStepState.current => step.newGoal == 0
-          ? '${step.reviewCount} tekrar'
-          : '${step.learnedCount}/${step.newGoal} yeni kelime · ${step.reviewCount} tekrar',
-      _ => '${step.newGoal} yeni kelime',
+          ? l10n.pathReviewCount(step.reviewCount)
+          : l10n.pathSheetCurrentSummary(
+              step.learnedCount,
+              step.newGoal,
+              step.reviewCount,
+            ),
+      _ => l10n.pathNewWords(step.newGoal),
     };
 
     return Row(
@@ -3043,10 +3074,10 @@ class _WordRow extends StatelessWidget {
     final s = scale;
     final (pill, pillDepth) = _articleColors(word.article);
     final (status, statusColor) = word.due
-        ? ('Tekrar zamanı', _C.accent)
+        ? (context.l10n.wordStatusDue, _C.accent)
         : word.consolidated
-            ? ('Pekişti', _C.green)
-            : ('Öğreniliyor', _C.muted);
+            ? (context.l10n.wordStatusConsolidated, _C.green)
+            : (context.l10n.wordStatusLearning, _C.muted);
 
     return Container(
       height: 150 * s,

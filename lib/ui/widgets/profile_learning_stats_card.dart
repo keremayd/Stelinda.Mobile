@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
 import 'dart:math' as math;
@@ -60,14 +61,16 @@ class ProfileGoalsCard extends StatelessWidget {
       _goalRow(
         scale: scale,
         icon: LeagueBadgeMark(size: 52 * scale, leagueKey: leagueKey),
-        title: pointsToNextLeague == null ? 'En üst lig' : 'Bir üst lig',
+        title: pointsToNextLeague == null
+            ? context.l10n.profileTopLeague
+            : context.l10n.profileNextLeague,
         // Üst ligin **adı** gösterilmiyor: lig sırası `LeagueRules` ile
         // backend'de tanımlı (tek doğruluk kaynağı) ve yanıt bir sonraki
         // ligin adını taşımıyor. İstemcide ikinci bir lig listesi tutmak
         // ikisinin zamanla ayrışması demek olurdu.
         hint: pointsToNextLeague == null
-            ? 'Zirvedesin'
-            : '$pointsToNextLeague puan kaldı',
+            ? context.l10n.profileAtTop
+            : context.l10n.profilePointsLeft(pointsToNextLeague!),
         fraction: pointsToNextLeague == null
             ? 1
             : leagueProgressRatio.clamp(0.0, 1.0),
@@ -77,8 +80,8 @@ class ProfileGoalsCard extends StatelessWidget {
         _goalRow(
           scale: scale,
           icon: QuestIcon(questKey: 'streak_three', size: 52 * scale),
-          title: '$nextMilestone günlük rozet',
-          hint: '${nextMilestone - currentStreak} gün kaldı',
+          title: context.l10n.profileStreakBadge(nextMilestone),
+          hint: context.l10n.profileDaysLeft(nextMilestone - currentStreak),
           // Bar **hedefe göre** dolar; bir önceki eşikten değil. Etiket
           // "$nextMilestone günlük rozet" diyorsa bar da onu ölçmeli.
           fraction: (currentStreak / nextMilestone).clamp(0.0, 1.0),
@@ -316,17 +319,21 @@ class ProfileTotalsRow extends StatelessWidget {
             child: Row(
               children: [
                 _cell(scale, PointsStarIcon(size: 48 * scale), '$experience',
-                    'PUAN'),
+                    context.l10n.statPoints),
                 _cell(scale, _WhiteBoostBoltIcon(size: 48 * scale),
-                    '$encounteredWords', 'KELİME',
-                    onTap: onWordsTap),
+                    '$encounteredWords', context.l10n.statWords,
+                    onTap: onWordsTap,
+                    semantic:
+                        context.l10n.profileWordsOpen('$encounteredWords')),
                 _cell(scale, ArticleLearnedIcon(size: 48 * scale),
-                    '$learnedArticles', 'ARTİKEL'),
+                    '$learnedArticles', context.l10n.statArticles),
                 _cell(
                   scale,
                   TrophyIcon(size: 44 * scale),
-                  leaderboardRank == null ? '—' : '$leaderboardRank.',
-                  'LİDERLİK',
+                  leaderboardRank == null
+                      ? '—'
+                      : context.l10n.rankOrdinal(leaderboardRank!),
+                  context.l10n.statLeaderboard,
                 ),
               ],
             ),
@@ -348,12 +355,11 @@ class ProfileTotalsRow extends StatelessWidget {
   }
 
   Widget _cell(double scale, Widget icon, String value, String label,
-      {VoidCallback? onTap}) {
+      {VoidCallback? onTap, String? semantic}) {
     return Expanded(
       child: _PressableProfileStat(
         onTap: onTap,
-        semanticLabel:
-            onTap == null ? null : '$value kelime, Kelimelerim ekranını aç',
+        semanticLabel: onTap == null ? null : semantic,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -507,8 +513,8 @@ class _ReviewActionCard extends StatelessWidget {
               children: [
                 Text(
                   waiting
-                      ? '$reviewCount rövanş kartı seni bekliyor'
-                      : 'Rövanş kartın yok',
+                      ? context.l10n.profileRevengeWaiting(reviewCount)
+                      : context.l10n.profileRevengeNone,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -522,8 +528,8 @@ class _ReviewActionCard extends StatelessWidget {
                 SizedBox(height: 5 * scale),
                 Text(
                   waiting
-                      ? 'Yanlış bildiklerini geri kazan'
-                      : 'Yanlış cevapladıkların burada birikir',
+                      ? context.l10n.profileRevengeWin
+                      : context.l10n.profileRevengeCollect,
                   style: TextStyle(
                     color: _muted,
                     fontFamily: AppTypography.family,
@@ -821,6 +827,7 @@ class ProfileStreakCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _header(
+                  context,
                   scale: scale,
                   currentStreak: stats?.currentStreak ?? 0,
                   freezeCount: stats?.freezeCount ?? 0,
@@ -840,7 +847,8 @@ class ProfileStreakCard extends StatelessWidget {
     );
   }
 
-  Widget _header({
+  Widget _header(
+    BuildContext context, {
     required double scale,
     required int currentStreak,
     required int freezeCount,
@@ -861,7 +869,7 @@ class ProfileStreakCard extends StatelessWidget {
         ),
         SizedBox(width: 8 * scale),
         Text(
-          'günlük seri',
+          context.l10n.profileDailyStreak,
           style: TextStyle(
             color: _muted,
             fontFamily: AppTypography.family,
@@ -873,12 +881,20 @@ class ProfileStreakCard extends StatelessWidget {
         const Spacer(),
         // Koruma sayısı seriyle aynı satırda: ikisi aynı hikâyenin parçası —
         // biri riskteki değer, diğeri onu kurtaracak kaynak.
-        _freezePill(scale: scale, freezeCount: freezeCount),
+        _freezePill(
+          scale: scale,
+          freezeCount: freezeCount,
+          unit: context.l10n.profileFreezeUnit(freezeCount),
+        ),
       ],
     );
   }
 
-  Widget _freezePill({required double scale, required int freezeCount}) {
+  Widget _freezePill({
+    required double scale,
+    required int freezeCount,
+    required String unit,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF0C2244),
@@ -911,7 +927,7 @@ class ProfileStreakCard extends StatelessWidget {
           // 21pt'de taşıyamıyor. Satırın solu da böyle çalışmıyor zaten:
           // orada da "13" değil "13 günlük seri" yazıyor.
           Text(
-            'koruma',
+            unit,
             style: TextStyle(
               color: _muted,
               fontFamily: AppTypography.family,

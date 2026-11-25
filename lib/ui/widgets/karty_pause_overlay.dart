@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
 import 'dart:ui';
@@ -48,7 +49,7 @@ class KartyPauseOverlay extends StatelessWidget {
       scopesRoute: true,
       explicitChildNodes: true,
       namesRoute: true,
-      label: 'Oyun duraklatıldı',
+      label: context.l10n.pauseSpoken,
       child: Stack(children: [
         Positioned.fill(
           child: BackdropFilter(
@@ -72,7 +73,7 @@ class KartyPauseOverlay extends StatelessWidget {
                   size: 76 * scale,
                   color: const Color(0xFF1CB1F5)),
               SizedBox(height: 32 * scale),
-              Text('Duraklatıldı',
+              Text(context.l10n.pauseTitle,
                   style: TextStyle(
                       color: const Color(0xFFE9EEF5),
                       fontFamily: AppTypography.displayFamily,
@@ -81,11 +82,14 @@ class KartyPauseOverlay extends StatelessWidget {
               SizedBox(height: 48 * scale),
               // Seviye 4 Kas 2026'da kalktı (zorluk puanı emekli oldu);
               // menüde yalnız bu oturumun doğru serisi kalıyor.
-              statistic(QuestIcon(questKey: 'streak_three', size: 48 * scale),
-                  streak, 'Doğru serisi', const Color(0xFFF52A2A)),
+              statistic(
+                  QuestIcon(questKey: 'streak_three', size: 48 * scale),
+                  streak,
+                  context.l10n.pauseCorrectStreak,
+                  const Color(0xFFF52A2A)),
               SizedBox(height: 52 * scale),
               DepthPressableButton(
-                text: 'DEVAM ET',
+                text: context.l10n.actionContinue,
                 width: 534 * scale,
                 height: 110 * scale,
                 radius: 30 * scale,
@@ -97,7 +101,7 @@ class KartyPauseOverlay extends StatelessWidget {
               ),
               SizedBox(height: 22 * scale),
               SecondaryActionButton(
-                text: 'Oyundan çık',
+                text: context.l10n.gameExit,
                 scale: scale,
                 width: 534 * scale,
                 onPressed: onExit,

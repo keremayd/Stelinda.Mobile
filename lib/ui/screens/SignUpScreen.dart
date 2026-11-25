@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/gestures.dart';
@@ -77,15 +78,16 @@ class _SignUpScreenState extends State<SignUpScreen>
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final newErrors = <String, String?>{
-      'firstName': firstName.isEmpty ? 'İsmini yazmalısın.' : null,
-      'lastName': lastName.isEmpty ? 'Soyismini yazmalısın.' : null,
+      'firstName':
+          firstName.isEmpty ? context.l10n.authFirstNameRequired : null,
+      'lastName': lastName.isEmpty ? context.l10n.authLastNameRequired : null,
       'email': RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)
           ? null
-          : 'Geçerli bir e-posta adresi gir.',
+          : context.l10n.authInvalidEmail,
       'password': password.isEmpty
-          ? 'Şifreni gir.'
+          ? context.l10n.authEnterPassword
           : password.length < 6 || !RegExp(r'\d').hasMatch(password)
-              ? 'Şifren en az 6 karakter ve bir rakam içermeli.'
+              ? context.l10n.authPasswordRule
               : null,
     };
 
@@ -119,6 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   }
 
   _RegistrationFailure _registrationFailure(Object error) {
+    final l10n = context.l10n;
     if (error is DioError) {
       final body = error.response?.data;
       final errorList = body is Map ? body['errorList'] : null;
@@ -127,20 +130,20 @@ class _SignUpScreenState extends State<SignUpScreen>
           codes is List ? codes.whereType<String>() : <String>[];
 
       if (identityCodes.contains('DuplicateEmail')) {
-        return const _RegistrationFailure(
-          'Bu e-posta adresiyle zaten bir hesap var.',
+        return _RegistrationFailure(
+          l10n.authDuplicateEmail,
           field: 'email',
         );
       }
       if (identityCodes.contains('DuplicateUserName')) {
-        return const _RegistrationFailure(
-          'Bu isimle hesap oluşturulamadı. Farklı bir ad veya soyad dene.',
+        return _RegistrationFailure(
+          l10n.authDuplicateName,
           field: 'firstName',
         );
       }
       if (identityCodes.any((code) => code.startsWith('Password'))) {
-        return const _RegistrationFailure(
-          'Şifren en az 6 karakter ve bir rakam içermeli.',
+        return _RegistrationFailure(
+          l10n.authPasswordRule,
           field: 'password',
         );
       }
@@ -148,19 +151,14 @@ class _SignUpScreenState extends State<SignUpScreen>
           error.type == DioErrorType.sendTimeout ||
           error.type == DioErrorType.receiveTimeout ||
           error.type == DioErrorType.other) {
-        return const _RegistrationFailure(
-          'Bağlantı kurulamadı. İnternetini ve sunucuyu kontrol et.',
-        );
+        return _RegistrationFailure(l10n.authNoConnection);
       }
       if (error.response?.statusCode == 400) {
-        return const _RegistrationFailure(
-            'Bilgileri kontrol edip tekrar dene.');
+        return _RegistrationFailure(l10n.authCheckDetails);
       }
     }
 
-    return const _RegistrationFailure(
-      'Şu anda kayıt oluşturulamıyor. Lütfen tekrar dene.',
-    );
+    return _RegistrationFailure(l10n.authSignUpUnavailable);
   }
 
   Future<void> _signUp() async {
@@ -186,8 +184,7 @@ class _SignUpScreenState extends State<SignUpScreen>
         final response = await authService.signUp(request, context);
         if (!mounted) return;
         if (response.errorCode != null || response.data == null) {
-          setState(() => _formError =
-              'Şu anda kayıt oluşturulamıyor. Lütfen tekrar dene.');
+          setState(() => _formError = context.l10n.authSignUpUnavailable);
           return;
         }
         setState(() {
@@ -202,14 +199,12 @@ class _SignUpScreenState extends State<SignUpScreen>
       if (loginResponse.errorCode == null && loginResponse.data != null) {
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        setState(() =>
-            _formError = 'Hesabın oluşturuldu. Giriş yapılamadı; tekrar dene.');
+        setState(() => _formError = context.l10n.authCreatedLoginFailed);
       }
     } catch (error) {
       if (!mounted) return;
       if (_accountCreated) {
-        setState(() =>
-            _formError = 'Hesabın oluşturuldu. Giriş yapılamadı; tekrar dene.');
+        setState(() => _formError = context.l10n.authCreatedLoginFailed);
       } else {
         final failure = _registrationFailure(error);
         setState(() {
@@ -238,8 +233,8 @@ class _SignUpScreenState extends State<SignUpScreen>
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         setState(() => _formError = response.errorCode == 'İşlem iptal edildi!'
-            ? 'Google ile devam etme iptal edildi.'
-            : 'Google ile devam edilemedi. Tekrar dene.');
+            ? context.l10n.authGoogleContinueCanceled
+            : context.l10n.authGoogleContinueFailed);
       }
     } catch (error) {
       if (!mounted) return;
@@ -249,8 +244,8 @@ class _SignUpScreenState extends State<SignUpScreen>
               error.type == DioErrorType.receiveTimeout ||
               error.type == DioErrorType.other);
       setState(() => _formError = connectionError
-          ? 'Bağlantı kurulamadı. İnternetini ve sunucuyu kontrol et.'
-          : 'Google ile devam edilemedi. Tekrar dene.');
+          ? context.l10n.authNoConnection
+          : context.l10n.authGoogleContinueFailed);
     } finally {
       if (mounted) setState(() => _googleLoading = false);
     }
@@ -273,8 +268,8 @@ class _SignUpScreenState extends State<SignUpScreen>
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         setState(() => _formError = response.errorCode == 'İşlem iptal edildi!'
-            ? 'Apple ile devam etme iptal edildi.'
-            : 'Apple ile devam edilemedi. Tekrar dene.');
+            ? context.l10n.authAppleContinueCanceled
+            : context.l10n.authAppleContinueFailed);
       }
     } catch (error) {
       if (!mounted) return;
@@ -285,8 +280,8 @@ class _SignUpScreenState extends State<SignUpScreen>
               error.type == DioErrorType.receiveTimeout ||
               error.type == DioErrorType.other);
       setState(() => _formError = connectionError
-          ? 'Bağlantı kurulamadı. İnternetini ve sunucuyu kontrol et.'
-          : 'Apple ile devam edilemedi. Tekrar dene.');
+          ? context.l10n.authNoConnection
+          : context.l10n.authAppleContinueFailed);
     } finally {
       if (mounted) setState(() => _appleLoading = false);
     }
@@ -337,7 +332,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                       top: 300 * scale,
                       child: _SignUpInput(
                         controller: _firstNameController,
-                        hint: "İsim",
+                        hint: context.l10n.authFirstNameHint,
                         width: 335 * scale,
                         height: 112 * scale,
                         radius: 26 * scale,
@@ -360,7 +355,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                       top: 300 * scale,
                       child: _SignUpInput(
                         controller: _lastNameController,
-                        hint: "Soyisim",
+                        hint: context.l10n.authLastNameHint,
                         width: 336 * scale,
                         height: 112 * scale,
                         radius: 26 * scale,
@@ -383,7 +378,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                       top: 430 * scale,
                       child: _SignUpInput(
                         controller: _emailController,
-                        hint: "E-posta",
+                        hint: context.l10n.authEmailHint,
                         width: 686 * scale,
                         height: 112 * scale,
                         radius: 26 * scale,
@@ -400,7 +395,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                       top: 560 * scale,
                       child: _SignUpInput(
                         controller: _passwordController,
-                        hint: "Şifre",
+                        hint: context.l10n.authPasswordHint,
                         width: 686 * scale,
                         height: 112 * scale,
                         radius: 26 * scale,
@@ -438,7 +433,9 @@ class _SignUpScreenState extends State<SignUpScreen>
                         fontSize: 28 * scale,
                         enabled: !_isBusy,
                         isLoading: _isLoading,
-                        text: _accountCreated ? 'Giriş yap' : 'Kayıt ol',
+                        text: _accountCreated
+                            ? context.l10n.authSignIn
+                            : context.l10n.authSignUp,
                         onPressed: _signUp,
                       ),
                     ),
@@ -457,7 +454,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               padding:
                                   EdgeInsets.symmetric(horizontal: 24 * scale),
                               child: Text(
-                                'veya',
+                                context.l10n.authOr,
                                 style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 26 * scale,
@@ -481,8 +478,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                         child: AuthSocialButton(
                           provider: provider,
                           label: provider == AuthSocialProvider.apple
-                              ? 'Apple ile devam et'
-                              : 'Google ile devam et',
+                              ? context.l10n.authContinueApple
+                              : context.l10n.authContinueGoogle,
                           width: 686 * scale,
                           height: 96 * scale,
                           radius: 26 * scale,
@@ -504,7 +501,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                       child: Text.rich(
                         textAlign: TextAlign.center,
                         TextSpan(
-                          text: 'Hesabın var mı? ',
+                          text: context.l10n.authHaveAccount,
                           style: TextStyle(
                             fontSize: 30 * scale,
                             fontWeight: AppTypography.body,
@@ -516,7 +513,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                               // Altı çizili gri yerine accent mavi: cümlenin
                               // tıklanabilir kısmı renkle ayrılıyor, "Parolamı
                               // unuttum" ile aynı dil.
-                              text: 'Giriş yap',
+                              text: context.l10n.authSignIn,
                               style: TextStyle(
                                 fontSize: 30 * scale,
                                 fontWeight: AppTypography.action,
@@ -728,7 +725,7 @@ class _SignUpHeader extends StatelessWidget {
             ),
           ),
           Text(
-            "Profilini oluştur",
+            context.l10n.authCreateProfile,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: titleColor,

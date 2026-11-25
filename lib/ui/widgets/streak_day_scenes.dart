@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/models/responses/ScoreWithLivesResponse.dart';
 
@@ -91,6 +92,24 @@ class StreakScene {
   final double aspect;
 
   final String message;
+
+  /// Mesajın kullanıcının dilindeki hâli; [message] kaynak (Türkçe) metin.
+  String messageIn(AppLocalizations l10n) => switch (key) {
+        'gun_100' => l10n.streakGalaxy,
+        'ritmi_koru' => l10n.streakKeepRhythm,
+        'harika_gidiyorsun' => l10n.streakGreat,
+        'hedefe_dogru' => l10n.streakRiseUp,
+        'beyni_esnet' => l10n.streakStretch,
+        'madalyani_kazan' => l10n.streakMedal,
+        'istikrar_guclendirir' => l10n.streakConsistency,
+        'seni_ozledik' => l10n.streakMissedYou,
+        'ruzgari_yakala' => l10n.streakCatchWind,
+        'serin_korundu' => l10n.streakProtected,
+        'kendi_rekorun' => l10n.streakLongest,
+        'gunluk_seri' => l10n.streakContinues,
+        'gunluk_seri_bekliyor' => l10n.streakComeBack,
+        _ => message,
+      };
 
   /// Kartın metin tarafındaki rengi.
   ///

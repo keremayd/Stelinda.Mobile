@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/models/responses/word_collection_response.dart';
 import 'package:stelinda/services/PronunciationService.dart';
@@ -83,7 +84,7 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
       if (!mounted || generation != _generation) return;
       setState(() {
         _loading = false;
-        _error = 'Kelimeler yüklenemedi. Tekrar deneyebilirsin.';
+        _error = context.l10n.wordsLoadFailed;
       });
     }
   }
@@ -113,8 +114,11 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
       if (!mounted || generation != _generation) return;
       setState(() => _loadingMore = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Diğer kelimeler yüklenemedi.'),
-        action: SnackBarAction(label: 'Tekrar dene', onPressed: _loadMore),
+        content: Text(context.l10n.wordsMoreFailed),
+        action: SnackBarAction(
+          label: context.l10n.commonTryAgain,
+          onPressed: _loadMore,
+        ),
       ));
     }
   }
@@ -127,9 +131,9 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
     if (service.isMuted.value) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Ses kapalı. Telaffuzu dinlemek için açabilirsin.'),
+        content: Text(context.l10n.wordsSoundOff),
         action: SnackBarAction(
-          label: 'Sesi aç',
+          label: context.l10n.wordsTurnSoundOn,
           onPressed: () async {
             await service.setMuted(false);
             if (mounted) await _playAudible(item, service);
@@ -176,7 +180,7 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
                   AuthBackButton(
                       scale: s, onPressed: () => Navigator.pop(context)),
                   Expanded(
-                    child: Text('Kelimelerim',
+                    child: Text(context.l10n.wordsTitle,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -192,8 +196,8 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
               SizedBox(height: 50 * s),
               Text(
                   _page == null
-                      ? 'Kelime koleksiyonun'
-                      : '$count kelimeyle tanıştın',
+                      ? context.l10n.wordsCollection
+                      : context.l10n.wordsMetCount(count),
                   style: TextStyle(
                     color: Colors.white,
                     fontFamily: AppTypography.displayFamily,
@@ -202,7 +206,7 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
                     height: 1.12,
                   )),
               SizedBox(height: 6 * s),
-              Text('Kelimelerine yeniden göz at, seslerini dinle.',
+              Text(context.l10n.wordsSubtitle,
                   style: TextStyle(
                     color: _muted,
                     fontFamily: AppTypography.family,
@@ -212,16 +216,19 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
                   )),
               SizedBox(height: 36 * s),
               Row(children: [
-                _filter('Tümü', 'all', count, s),
+                _filter(context.l10n.wordsFilterAll, 'all', count, s),
                 SizedBox(width: 10 * s),
-                _filter('Yeni', 'new', _page?.newCount ?? 0, s),
+                _filter(context.l10n.wordsFilterNew, 'new',
+                    _page?.newCount ?? 0, s),
                 SizedBox(width: 10 * s),
-                _filter('Tekrar', 'due', _page?.dueCount ?? 0, s),
+                _filter(context.l10n.wordsFilterDue, 'due',
+                    _page?.dueCount ?? 0, s),
                 SizedBox(width: 10 * s),
-                _filter('Artikel', 'article', _page?.articleCount ?? 0, s),
+                _filter(context.l10n.wordsFilterArticle, 'article',
+                    _page?.articleCount ?? 0, s),
               ]),
               SizedBox(height: 40 * s),
-              Text('KELİMELER',
+              Text(context.l10n.wordsHeader,
                   style: TextStyle(
                     color: _muted,
                     fontFamily: AppTypography.family,
@@ -264,10 +271,10 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
   }
 
   String get _emptyMessage => switch (_category) {
-        'new' => 'Yeni tanıştığın kelime yok.',
-        'due' => 'Şu an tekrar zamanı gelen kelime yok.',
-        'article' => 'Artikel çalışacak kelime yok.',
-        _ => 'Henüz bir kelimeyle tanışmadın.',
+        'new' => context.l10n.wordsEmptyNew,
+        'due' => context.l10n.wordsEmptyDue,
+        'article' => context.l10n.wordsEmptyArticle,
+        _ => context.l10n.wordsEmptyAll,
       };
 
   Widget _message(String message, double s, {VoidCallback? retry}) => Padding(
@@ -281,7 +288,10 @@ class _WordCollectionScreenState extends State<WordCollectionScreen> {
                   fontWeight: AppTypography.body,
                   fontSize: 26 * s)),
           if (retry != null)
-            TextButton(onPressed: retry, child: const Text('TEKRAR DENE')),
+            TextButton(
+              onPressed: retry,
+              child: Text(context.l10n.commonTryAgainCaps),
+            ),
         ]),
       );
 

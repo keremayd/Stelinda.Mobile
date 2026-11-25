@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:stelinda/ui/widgets/karty_boost_palette.dart';
@@ -23,8 +24,8 @@ class KartyLeagueScore extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
         label: boostActive
-            ? '$points lig puanı. Üç kat puan etkin.'
-            : '$points lig puanı',
+            ? context.l10n.kartyLeaguePointsBoostSpoken(points)
+            : context.l10n.kartyLeaguePointsSpoken(points),
         excludeSemantics: true,
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           LeagueBadgeMark(leagueKey: leagueKey, size: 54 * scale),

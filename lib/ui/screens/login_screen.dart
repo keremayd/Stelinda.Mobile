@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:dio/dio.dart';
 import 'package:stelinda/dev_tools.dart';
@@ -76,35 +77,36 @@ class _LoginScreenState extends State<LoginScreen> {
       _emailInvalid = emailInvalid;
       _passwordInvalid = passwordInvalid;
       _errorMessage = email.isEmpty
-          ? 'E-posta adresini gir.'
+          ? context.l10n.authEnterEmail
           : emailInvalid
-              ? 'Geçerli bir e-posta adresi gir.'
-              : 'Şifreni gir.';
+              ? context.l10n.authInvalidEmail
+              : context.l10n.authEnterPassword;
     });
     return false;
   }
 
   String _failureMessage(Object error, LoginMethod method) {
+    final l10n = context.l10n;
     if (error is SignInWithAppleException) {
-      return 'Apple ile giriş yapılamadı. Tekrar dene.';
+      return l10n.authAppleLoginFailed;
     }
     if (error is DioError) {
       if (error.response?.statusCode == 400 ||
           error.response?.statusCode == 401) {
         return switch (method) {
-          LoginMethod.usernamePassword => 'E-posta veya şifre hatalı.',
-          LoginMethod.google => 'Google ile giriş yapılamadı. Tekrar dene.',
-          LoginMethod.apple => 'Apple ile giriş yapılamadı. Tekrar dene.',
+          LoginMethod.usernamePassword => l10n.authWrongCredentials,
+          LoginMethod.google => l10n.authGoogleLoginFailed,
+          LoginMethod.apple => l10n.authAppleLoginFailed,
         };
       }
       if (error.type == DioErrorType.connectTimeout ||
           error.type == DioErrorType.sendTimeout ||
           error.type == DioErrorType.receiveTimeout ||
           error.type == DioErrorType.other) {
-        return 'Bağlantı kurulamadı. İnternetini ve sunucuyu kontrol et.';
+        return l10n.authNoConnection;
       }
     }
-    return 'Şu anda giriş yapılamıyor. Lütfen tekrar dene.';
+    return l10n.authLoginUnavailable;
   }
 
   Future<void> _login(LoginMethod method, {bool useTestAccount = false}) async {
@@ -148,12 +150,12 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _errorMessage = switch (method) {
             LoginMethod.google => canceled
-                ? 'Google ile giriş iptal edildi.'
-                : 'Google ile giriş yapılamadı. Tekrar dene.',
+                ? context.l10n.authGoogleLoginCanceled
+                : context.l10n.authGoogleLoginFailed,
             LoginMethod.apple => canceled
-                ? 'Apple ile giriş iptal edildi.'
-                : 'Apple ile giriş yapılamadı. Tekrar dene.',
-            LoginMethod.usernamePassword => 'E-posta veya şifre hatalı.',
+                ? context.l10n.authAppleLoginCanceled
+                : context.l10n.authAppleLoginFailed,
+            LoginMethod.usernamePassword => context.l10n.authWrongCredentials,
           };
         });
       }
@@ -206,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     top: 300 * scale,
                     child: _LoginInput(
                       controller: _usernameController,
-                      hint: 'E-posta',
+                      hint: context.l10n.authEmailHint,
                       enabled: !_isLoading,
                       invalid: _emailInvalid,
                       onChanged: (_) => _clearError(),
@@ -234,7 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     top: 430 * scale,
                     child: _LoginInput(
                       controller: _passwordController,
-                      hint: 'Şifre',
+                      hint: context.l10n.authPasswordHint,
                       enabled: !_isLoading,
                       invalid: _passwordInvalid,
                       onChanged: (_) => _clearError(),
@@ -270,10 +272,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             _errorMessage ??
                                 switch (_loadingSource) {
                                   _LoginSource.google =>
-                                    'Google ile giriş yapılıyor...',
+                                    context.l10n.authSigningInGoogle,
                                   _LoginSource.apple =>
-                                    'Apple ile giriş yapılıyor...',
-                                  _ => 'Giriş yapılıyor...',
+                                    context.l10n.authSigningInApple,
+                                  _ => context.l10n.authSigningIn,
                                 },
                             maxLines: 2,
                             textAlign: TextAlign.center,
@@ -320,7 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Accent renk ve normal yazım onu tıklanabilir bir
                       // bağlantıya çeviriyor.
                       child: Text(
-                        "Parolamı unuttum",
+                        context.l10n.authForgotPassword,
                         style: TextStyle(
                           color: _accentColor,
                           fontSize: 29 * scale,
@@ -345,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             padding:
                                 EdgeInsets.symmetric(horizontal: 24 * scale),
                             child: Text(
-                              'veya',
+                              context.l10n.authOr,
                               style: TextStyle(
                                 color: _mutedColor,
                                 fontSize: 26 * scale,
@@ -370,8 +372,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: AuthSocialButton(
                         provider: provider,
                         label: provider == AuthSocialProvider.apple
-                            ? 'Apple ile giriş yap'
-                            : 'Google ile giriş yap',
+                            ? context.l10n.authSignInApple
+                            : context.l10n.authSignInGoogle,
                         width: 686 * scale,
                         height: 96 * scale,
                         radius: 26 * scale,
@@ -434,7 +436,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text.rich(
                       textAlign: TextAlign.center,
                       TextSpan(
-                        text: 'Hesabın yok mu? ',
+                        text: context.l10n.authNoAccount,
                         style: TextStyle(
                           fontSize: 30 * scale,
                           fontWeight: AppTypography.body,
@@ -443,7 +445,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         children: [
                           TextSpan(
-                            text: 'Kayıt ol',
+                            text: context.l10n.authSignUp,
                             style: TextStyle(
                               fontSize: 30 * scale,
                               fontWeight: AppTypography.action,
@@ -594,7 +596,7 @@ class _LoginHeader extends StatelessWidget {
             ),
           ),
           Text(
-            "Bilgilerini gir",
+            context.l10n.authEnterDetails,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: titleColor,
@@ -652,7 +654,7 @@ class _PrimaryLoginButton extends StatelessWidget {
               ),
             )
           : Text(
-              'Giriş yap',
+              context.l10n.authSignIn,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: fontSize,

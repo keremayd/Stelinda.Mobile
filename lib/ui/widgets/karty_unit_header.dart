@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -72,7 +73,7 @@ class KartyUnitHeader extends StatelessWidget {
         radius: radius,
         depth: depth,
         base: locked ? _C.base : _C.accentDepth,
-        face: _face(locked: locked, radius: radius),
+        face: _face(l10n: context.l10n, locked: locked, radius: radius),
       );
     }
 
@@ -100,13 +101,14 @@ class KartyUnitHeader extends StatelessWidget {
             base: Color.lerp(_C.base, _C.accentDepth, reveal)!,
             face: Stack(
               children: [
-                _face(locked: true, radius: radius),
+                _face(l10n: context.l10n, locked: true, radius: radius),
                 ClipOval(
                   clipper: KartyCircleReveal(
                     center: emblem,
                     radius: reveal * 560 * s,
                   ),
                   child: _face(
+                    l10n: context.l10n,
                     locked: false,
                     radius: radius,
                     emblemScale: 1 + 0.12 * math.sin(math.pi * pop),
@@ -176,6 +178,7 @@ class KartyUnitHeader extends StatelessWidget {
       );
 
   Widget _face({
+    required AppLocalizations l10n,
     required bool locked,
     required BorderRadius radius,
     double emblemScale = 1,
@@ -220,7 +223,7 @@ class KartyUnitHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'ÜNİTE ${unit.number}',
+                  l10n.unitLabel(unit.number),
                   style: TextStyle(
                     color: locked
                         ? _C.muted
@@ -255,7 +258,7 @@ class KartyUnitHeader extends StatelessWidget {
                     ? _LockedHint(
                         scale: s,
                         text: unit.unlockHint ??
-                            '${unit.wordCount} kelime seni bekliyor',
+                            l10n.unitWordsWaiting(unit.wordCount),
                       )
                     : _UnitProgress(
                         unit: unit,
@@ -293,7 +296,7 @@ class _UnitProgress extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${count.round()}/${unit.wordCount} kelime pekişti',
+          context.l10n.unitWordsConsolidated(count.round(), unit.wordCount),
           style: TextStyle(
             color: Colors.white,
             fontSize: 24 * scale,

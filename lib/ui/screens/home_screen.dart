@@ -440,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // Rövanş bilet harcamaz; yanlışları tekrar ederek oyuna dönüş yolu açar.
       review: KartyPathStation(
         title: l10n.introReviewTitle,
-        spokenName: 'Karty Rövanş',
+        spokenName: l10n.reviewStationSpoken,
         icon: (tile) => RevengeCardMark(size: tile * 0.76),
         detail: reviews == null
             ? ''
@@ -674,7 +674,7 @@ class _HomePlaceholder extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Karty Yolu yüklenemedi.',
+                  context.l10n.pathLoadFailed,
                   style: TextStyle(
                     color: _muted,
                     fontSize: 28 * scale,
@@ -684,7 +684,7 @@ class _HomePlaceholder extends StatelessWidget {
                 ),
                 SizedBox(height: 32 * scale),
                 DepthPressableButton(
-                  text: 'TEKRAR DENE',
+                  text: context.l10n.commonTryAgainCaps,
                   width: 420 * scale,
                   height: 96 * scale,
                   radius: 26 * scale,

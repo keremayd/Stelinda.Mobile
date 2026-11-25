@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -64,7 +65,7 @@ Future<bool> spendTicketForGame(
   // oynayabileceğini ve beklemek istemiyorsa ne olduğunu birlikte anlatır.
   if (apiResponse.errorCode != _noLivesErrorCode) {
     scoreProvider.setLives(before);
-    AppNotifier.showMessage('Oyun açılamadı. Daha sonra tekrar dene.');
+    AppNotifier.showMessage(currentL10n.gameOpenFailed);
     return false;
   }
 

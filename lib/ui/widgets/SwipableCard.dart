@@ -1,3 +1,4 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
 import 'package:stelinda/ui/widgets/karty_card_material.dart';
@@ -433,7 +434,7 @@ class _SwipableCardState extends State<SwipableCard>
                                             HourglassMark(size: 150 * scale),
                                             SizedBox(height: 26 * scale),
                                             Text(
-                                              'Süre doldu',
+                                              context.l10n.kartyTimeUp,
                                               style: TextStyle(
                                                 color: const Color(0xFFE9EEF5),
                                                 fontFamily:
@@ -451,7 +452,8 @@ class _SwipableCardState extends State<SwipableCard>
                                               // cevap" demek ve zaman
                                               // aşımı bir başarı değil.
                                               DepthPressableButton(
-                                                text: 'TEKRAR DENE',
+                                                text: context
+                                                    .l10n.commonTryAgainCaps,
                                                 width: 260 * scale,
                                                 height: 86 * scale,
                                                 radius: 24 * scale,

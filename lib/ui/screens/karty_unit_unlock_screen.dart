@@ -94,8 +94,7 @@ class _KartyUnitUnlockScreenState extends State<KartyUnitUnlockScreen>
 
     setState(() => _submitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Ünite bilgisi kaydedilemedi. Tekrar dene.')),
+      SnackBar(content: Text(context.l10n.unitSaveFailed)),
     );
   }
 
@@ -182,7 +181,7 @@ class KartyUnitUnlockScene extends StatelessWidget {
                       progress: _phase(t, 0.62, 0.82, Curves.easeOutCubic),
                       distance: 36 * s,
                       child: Text(
-                        'ÜNİTE ${unit.number} AÇILDI',
+                        context.l10n.unitUnlockedLabel(unit.number),
                         style: TextStyle(
                           color: _C.accent,
                           fontSize: 26 * s,
@@ -220,7 +219,7 @@ class KartyUnitUnlockScene extends StatelessWidget {
                       distance: 36 * s,
                       child: Text(
                         '${unlock.reasonIn(context.l10n)}\n'
-                        '${unit.wordCount} yeni kelime seni bekliyor.',
+                        '${context.l10n.unitNewWordsWaiting(unit.wordCount)}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: _C.muted,
@@ -245,7 +244,7 @@ class KartyUnitUnlockScene extends StatelessWidget {
                               )
                             : DepthPressableButton(
                                 key: const Key('karty-unit-unlock-continue'),
-                                text: 'DEVAM ET',
+                                text: context.l10n.actionContinue,
                                 width: 670 * s,
                                 height: 112 * s,
                                 radius: 26 * s,
