@@ -655,9 +655,10 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
     );
   }
 
-  /// Ücretsiz kazanma yolu: yan yana karo. Basılabilir ama depth-press
-  /// değil: bunlar yönlendirme, birincil eylem Premium düğmesi. Kapalı yol
-  /// görünür kalır (keşfedilsin), sönük ve basılmaz.
+  /// Ücretsiz kazanma yolu: yan yana karo. Uygulamanın ortak basılabilir
+  /// yüzeyi (`DepthPressableButton`, ikincil düğme renkleri): basınca
+  /// tabanına çöker. Kapalı yol görünür kalır (keşfedilsin); ortak düğmenin
+  /// pasif hâliyle çökük ve soluk, basılmaz.
   Widget _earnTile(
     double s, {
     required Widget icon,
@@ -666,30 +667,25 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
     required int? reward,
     required VoidCallback? onTap,
   }) {
-    final radius = BorderRadius.circular(26 * s);
     return Semantics(
       button: onTap != null,
       enabled: onTap != null,
       label: '$title, $detail',
       excludeSemantics: true,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 180),
-        opacity: onTap == null ? 0.5 : 1,
-        child: Material(
-          color: _tile,
-          borderRadius: radius,
-          child: InkWell(
-            borderRadius: radius,
-            onTap: onTap,
-            child: Container(
-              height: 160 * s,
-              padding: EdgeInsets.fromLTRB(20 * s, 16 * s, 16 * s, 12 * s),
-              decoration: BoxDecoration(
-                borderRadius: radius,
-                border: Border(
-                  bottom: BorderSide(color: _tileBase, width: 7 * s),
-                ),
-              ),
+      child: LayoutBuilder(
+        builder: (context, constraints) => DepthPressableButton(
+          width: constraints.maxWidth,
+          height: 151 * s,
+          radius: 24 * s,
+          shadowOffset: 9 * s,
+          backgroundColor: _tile,
+          shadowColor: _tileBase,
+          fontSize: 27 * s,
+          enabled: onTap != null,
+          onPressed: onTap ?? () {},
+          child: SizedBox.expand(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20 * s, 16 * s, 16 * s, 14 * s),
               child: Row(
                 children: [
                   Expanded(
