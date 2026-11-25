@@ -12,6 +12,7 @@ import 'package:stelinda/models/responses/LeagueProgressResponse.dart';
 import 'package:stelinda/providers/ScoreWithLivesProvider.dart';
 import 'package:stelinda/providers/UserProvider.dart';
 import 'package:stelinda/services/UserService.dart';
+import 'package:stelinda/services/cached_signed_image.dart';
 import 'package:stelinda/ui/widgets/ProfilePhoto.dart';
 import 'package:stelinda/ui/widgets/Buttons/app_icon_control_button.dart';
 import 'package:stelinda/ui/widgets/countdown_pill.dart';
@@ -58,6 +59,21 @@ class _LeagueScreenState extends State<LeagueScreen>
   PageController? _stripController;
   int _centeredIndex = 0;
   bool _didCenterOnActiveLeague = false;
+
+  /// Bu ekranın açtığı alttan pencere açık. Pencere kapanınca da
+  /// `didPopNext` gelir (gözlemci her rotayı bildiriyor); lig verisi
+  /// değişmediği için tazelenmez. Tazelemek her satırın fotoğrafını yeniden
+  /// indiriyordu (kullanıcı, 25 Kas 2026).
+  bool _popupOpen = false;
+
+  Future<T> _openPopup<T>(Future<T> Function() open) async {
+    _popupOpen = true;
+    try {
+      return await open();
+    } finally {
+      _popupOpen = false;
+    }
+  }
 
   @override
   void initState() {
@@ -110,6 +126,8 @@ class _LeagueScreenState extends State<LeagueScreen>
   /// olabilir, lig verisini tazele.
   @override
   void didPopNext() {
+    // Kendi açtığımız pencere kapandı: veri aynı (engelleme kendisi tazeler).
+    if (_popupOpen) return;
     _refreshLeague();
   }
 
@@ -167,7 +185,8 @@ class _LeagueScreenState extends State<LeagueScreen>
 
   /// Sıralamada başka birine dokununca: bildir ya da engelle (App Store 1.2).
   Future<void> _openMember(LeagueLeaderboardEntry entry) async {
-    final action = await showLeagueMemberSheet(context, name: entry.displayName);
+    final action = await _openPopup(
+        () => showLeagueMemberSheet(context, name: entry.displayName));
     if (action == null || !mounted) return;
     final users = context.read<UserService>();
     final l10n = context.l10n;
@@ -300,14 +319,14 @@ class _LeagueScreenState extends State<LeagueScreen>
                             : _leagueName(nextLeagueKey),
                         onInfoPressed: league == null
                             ? null
-                            : () => showLeagueInfoPopup(
+                            : () => _openPopup(() => showLeagueInfoPopup(
                                   context,
                                   league: league,
                                   nextLeagueName: league.rank <
                                           _leagueKeys.length
                                       ? _leagueName(_leagueKeys[league.rank])
                                       : null,
-                                ),
+                                )),
                         onCenteredChanged: (index) {
                           if (index != _centeredIndex && mounted) {
                             setState(() => _centeredIndex = index);
@@ -1129,8 +1148,11 @@ class _RowAvatar extends StatelessWidget {
                 fontFamily: AppTypography.family,
               ),
             )
-          : Image.network(
-              photoUrl,
+          // İmzalı S3 adresi her yanıtta değişiyor; `Image.network` adresi
+          // anahtar aldığı için her tazelemede fotoğrafı silip yeniden
+          // indiriyordu. Önbellek anahtarı imzasız nesne adı (§4.4).
+          : Image(
+              image: CachedSignedImage(photoUrl),
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Text(
                 _initials(entry.displayName),
