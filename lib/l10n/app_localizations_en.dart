@@ -738,7 +738,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get premiumSubtitle =>
-      'Learn without breaks with unlimited tickets and streak freezes.';
+      'Keep learning with unlimited tickets and freezes.';
 
   @override
   String get commonClose => 'Close';

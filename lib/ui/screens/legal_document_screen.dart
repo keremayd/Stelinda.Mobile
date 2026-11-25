@@ -7,23 +7,28 @@ import 'package:stelinda/ui/widgets/Buttons/app_icon_control_button.dart';
 import 'package:stelinda/ui/widgets/Buttons/auth_back_button.dart';
 
 enum LegalDocument {
-  terms('assets/legal/kullanim_kosullari.md', 'assets/legal/terms_en.md'),
-  privacy('assets/legal/gizlilik_politikasi.md', 'assets/legal/privacy_en.md');
+  terms('assets/legal/kullanim_kosullari.md', 'assets/legal/terms_en.md',
+      'assets/legal/terms_sq.md'),
+  privacy('assets/legal/gizlilik_politikasi.md', 'assets/legal/privacy_en.md',
+      'assets/legal/privacy_sq.md');
 
-  const LegalDocument(this.asset, this.englishAsset);
+  const LegalDocument(this.asset, this.englishAsset, this.albanianAsset);
 
-  /// Türkçe metin (kaynak: stelinda.com).
+  /// Türkçe metin (kaynak: stelinda.com). Çevirileri birebir karşılığı;
+  /// Türkçe değişirse onlar da değişir.
   final String asset;
-
-  /// İngilizce çevirisi. Arnavutça henüz yok, Türkçe gösterilir.
   final String englishAsset;
+  final String albanianAsset;
 
   String titleIn(AppLocalizations l10n) =>
       this == terms ? l10n.legalTerms : l10n.legalPrivacy;
 
-  String assetFor(String language) => language == 'en' ? englishAsset : asset;
+  String assetFor(String language) => switch (language) {
+        'en' => englishAsset,
+        'sq' => albanianAsset,
+        _ => asset,
+      };
 }
-
 /// Kullanım koşulları ve gizlilik politikası. Metin asset'ten okunur:
 /// `## ` bölüm başlığı, `- ` madde; boş satır paragrafları ayırır.
 class LegalDocumentScreen extends StatefulWidget {
