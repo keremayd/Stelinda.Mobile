@@ -430,15 +430,18 @@ KartyPathData _path() => KartyPathData(
           wordCount: 24,
           consolidatedCount: 6,
           emblem: _image('haus'),
+          // 24 Kas 2026'dan beri Artikel ünitenin ortasında kendi adımı:
+          // Deste 2'den sonra, ünitenin ilk 16 kelimesinin artikeli.
           steps: const [
             KartyStep(state: KartyStepState.done, deck: 1, label: 'Deste 1'),
+            KartyStep(state: KartyStepState.done, deck: 2, label: 'Deste 2'),
             KartyStep(
               state: KartyStepState.current,
-              deck: 2,
-              label: 'Deste 2',
-              newCount: 5,
-              learnedCount: 5,
-              reviewCount: 4,
+              label: 'Artikel',
+              title: 'Artikel',
+              article: true,
+              newGoal: 16,
+              learnedCount: 9,
             ),
             KartyStep(
                 state: KartyStepState.upcoming, deck: 3, label: 'Deste 3'),
@@ -452,8 +455,10 @@ KartyPathData _path() => KartyPathData(
           emblem: _image('brot'),
           unlockHint: "Evde'nin %80'i pekişince açılır",
           steps: [
-            for (var i = 1; i <= 3; i++)
-              KartyStep(state: KartyStepState.locked, deck: i),
+            KartyStep(state: KartyStepState.locked, deck: 1),
+            KartyStep(state: KartyStepState.locked, deck: 2),
+            KartyStep(state: KartyStepState.locked, article: true),
+            KartyStep(state: KartyStepState.locked, deck: 3),
           ],
         ),
       ],
@@ -466,8 +471,12 @@ Widget _pathScreen() => Scaffold(
         child: KartyPathScreen(
           data: _path(),
           onContinue: () {},
+          // Patikanın başından: biten iki deste ve şu anki Artikel adımı
+          // birlikte görünsün (şu anki düğüme kayınca Deste 1 ünite
+          // kartının altında kalıyordu).
+          scrollToCurrent: false,
           stations: previewStations(),
-          header: (scale) => previewPathHeader(scale, streak: 6, tickets: 12),
+          header: (scale) => previewPathHeader(scale, streak: 6, tickets: 4),
         ),
       ),
     );
@@ -476,8 +485,8 @@ final _score = ScoreWithLivesProvider()
   ..setScoreWithLives(ScoreWithLivesResponse(
     score: 0,
     experience: 0,
-    lives: 12,
-    maxLives: 15,
+    lives: 4,
+    maxLives: 5,
     league: LeagueProgressResponse(
       leagueKey: 'yildiz',
       leagueName: 'Yıldız',
@@ -611,8 +620,8 @@ class _LeagueUsers extends UserService {
     final data = ScoreWithLivesResponse(
       score: 0,
       experience: 412,
-      lives: 12,
-      maxLives: 15,
+      lives: 4,
+      maxLives: 5,
       league: LeagueProgressResponse(
         leagueKey: 'nebula',
         leagueName: 'Nebula',

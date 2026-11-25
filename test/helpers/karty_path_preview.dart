@@ -8,14 +8,14 @@ Widget previewPathHeader(
   double scale, {
   int streak = 4,
   bool playedToday = true,
-  int tickets = 12,
+  int tickets = 4,
 }) =>
     HomeTopBar(
       scale: scale,
       streakDays: streak,
       playedToday: playedToday,
       tickets: tickets,
-      maxTickets: 15,
+      maxTickets: 5,
     );
 
 KartyPathStation previewReviewStation({

@@ -287,7 +287,7 @@ void main() {
               firstDay,
               streak: 0,
               playedToday: false,
-              tickets: 15,
+              tickets: 5,
               stations: KartyPathStations(
                 review: previewReviewStation(detail: 'Hatan yok'),
               ),
@@ -300,7 +300,7 @@ void main() {
               midUnit,
               streak: 4,
               playedToday: true,
-              tickets: 12,
+              tickets: 4,
               stations: KartyPathStations(
                 review: previewReviewStation(detail: '2 hatanı düzelt', onTap: open),
               ),
@@ -313,7 +313,7 @@ void main() {
               unitEnd,
               streak: 2,
               playedToday: false,
-              tickets: 9,
+              tickets: 3,
               stations: KartyPathStations(
                 review: previewReviewStation(detail: '1 hatanı düzelt', onTap: open),
               ),
@@ -326,7 +326,7 @@ void main() {
               unitEnd,
               streak: 2,
               playedToday: false,
-              tickets: 9,
+              tickets: 3,
               stations: KartyPathStations(
                 review: previewReviewStation(detail: '1 hatanı düzelt', onTap: open),
               ),
