@@ -188,6 +188,120 @@ abstract class AppLocalizations {
   /// **'Pekiştirme'**
   String get pathReinforce;
 
+  /// Bilet penceresi, bilet kalmadığında başlık.
+  ///
+  /// In tr, this message translates to:
+  /// **'Biletin bitti'**
+  String get ticketsOut;
+
+  /// Bilet penceresinde "3/5 bilet" satırının birimi.
+  ///
+  /// In tr, this message translates to:
+  /// **'bilet'**
+  String get ticketsUnit;
+
+  /// Geri sayım kapsülü; time kalın yazılır (ticketsHoursMinutes ya da ticketsMinutes).
+  ///
+  /// In tr, this message translates to:
+  /// **'{time} sonra 1 bilet'**
+  String ticketsNextIn(String time);
+
+  /// No description provided for @ticketsRenewing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilet yenileniyor'**
+  String get ticketsRenewing;
+
+  /// No description provided for @ticketsSoon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birazdan'**
+  String get ticketsSoon;
+
+  /// No description provided for @ticketsHoursMinutes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{hours} sa {minutes} dk'**
+  String ticketsHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @ticketsMinutes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dk'**
+  String ticketsMinutes(int minutes);
+
+  /// No description provided for @ticketsUnderMinute.
+  ///
+  /// In tr, this message translates to:
+  /// **'<1 dk'**
+  String get ticketsUnderMinute;
+
+  /// Biletler tavandayken geri sayım yerine yenilenme kuralı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Harcayınca her {hours} saatte 1 yenilenir'**
+  String ticketsCapEveryHours(int hours);
+
+  /// No description provided for @ticketsCapEveryMinutes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Harcayınca her {minutes} dakikada 1 yenilenir'**
+  String ticketsCapEveryMinutes(int minutes);
+
+  /// No description provided for @ticketsCapMax.
+  ///
+  /// In tr, this message translates to:
+  /// **'En fazla {max} bilet birikir'**
+  String ticketsCapMax(int max);
+
+  /// Bilet penceresinde ücretsiz yolların başlığı; büyük harfle yazılır.
+  ///
+  /// In tr, this message translates to:
+  /// **'ÜCRETSİZ KAZAN'**
+  String get ticketsEarnFree;
+
+  /// No description provided for @ticketsReviewOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hemen kazan'**
+  String get ticketsReviewOn;
+
+  /// No description provided for @ticketsQuests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevler'**
+  String get ticketsQuests;
+
+  /// Görevler karosu: yanında bugün görevlerden kazanılabilecek bilet.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün kalan'**
+  String get ticketsQuestsLeft;
+
+  /// No description provided for @ticketsQuestsDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarın yenilenir'**
+  String get ticketsQuestsDone;
+
+  /// No description provided for @ticketsQuestsDaily.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük görevler'**
+  String get ticketsQuestsDaily;
+
+  /// No description provided for @ticketsPremiumTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'BİLETİN HİÇ BİTMESİN'**
+  String get ticketsPremiumTitle;
+
+  /// No description provided for @ticketsPremiumBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Premium ile beklemeden oyna'**
+  String get ticketsPremiumBody;
+
   /// Ünitenin ortasındaki Artikel adımının düğüm adı.
   ///
   /// In tr, this message translates to:

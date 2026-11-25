@@ -32,7 +32,8 @@ void main() {
                 maxBalance: maxBalance,
                 onRefreshTickets: () async => false,
                 onTicketsReady: () {},
-                questTickets: 7,
+                questTickets: 3,
+                regenMinutes: 240,
                 onGoToReview: () {},
                 onGoToQuests: () {},
                 onGoPremium: () {},
@@ -69,17 +70,17 @@ void main() {
   testWidgets('bilet durumu - tavanin altinda', (tester) async {
     await shot(tester, const Duration(hours: 1, minutes: 24),
         'ticket_status_normal.png',
-        balance: 8, maxBalance: 15);
-    expect(find.text('Rövanş oyna'), findsOneWidget);
+        balance: 3, maxBalance: 5);
+    expect(find.text('Rövanş'), findsOneWidget);
     expect(find.text('Biletin bitti'), findsNothing);
   });
 
   testWidgets('bilet durumu - tavanda kazanma yollari gizli', (tester) async {
     await shot(tester, null, 'ticket_status_full.png',
-        balance: 15, maxBalance: 15);
-    expect(find.text('En fazla 15 bilet birikir.'), findsOneWidget);
-    expect(find.text('Rövanş oyna'), findsNothing);
-    expect(find.text('Görevleri bitir'), findsNothing);
+        balance: 5, maxBalance: 5);
+    expect(find.text('Harcayınca her 4 saatte 1 yenilenir'), findsOneWidget);
+    expect(find.text('Rövanş'), findsNothing);
+    expect(find.text('Görevler'), findsNothing);
   });
 
   testWidgets('bekleyen rovanş yoksa yol pasif kalir', (tester) async {
@@ -100,8 +101,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Bekleyen rövanş kartın yok'), findsOneWidget);
-    await tester.tap(find.text('Rövanş oyna'));
+    expect(find.text('Hatan yok'), findsOneWidget);
+    await tester.tap(find.text('Rövanş'), warnIfMissed: false);
     expect(openedReview, isFalse);
   });
 
@@ -132,7 +133,8 @@ void main() {
     expect(refreshCount, 1);
     expect(readyHandled, isTrue);
     expect(find.text('Yeni biletin hazır'), findsNothing);
-    expect(find.text('sonra yeni bilet'), findsNothing);
+    expect(find.textContaining('sonra 1 bilet', findRichText: true),
+        findsNothing);
   });
 
   testWidgets('bilet yenileme istegini sunucunun verdigi andan once atmaz',

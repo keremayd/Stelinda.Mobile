@@ -57,6 +57,75 @@ class AppLocalizationsSq extends AppLocalizations {
   String get pathReinforce => 'Përforcim';
 
   @override
+  String get ticketsOut => 'Biletat mbaruan';
+
+  @override
+  String get ticketsUnit => 'bileta';
+
+  @override
+  String ticketsNextIn(String time) {
+    return '1 biletë pas $time';
+  }
+
+  @override
+  String get ticketsRenewing => 'Bileta po rinovohet';
+
+  @override
+  String get ticketsSoon => 'Së shpejti';
+
+  @override
+  String ticketsHoursMinutes(int hours, int minutes) {
+    return '$hours orë $minutes min';
+  }
+
+  @override
+  String ticketsMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get ticketsUnderMinute => '<1 min';
+
+  @override
+  String ticketsCapEveryHours(int hours) {
+    return 'Pasi shpenzohet, rinovohet 1 çdo $hours orë';
+  }
+
+  @override
+  String ticketsCapEveryMinutes(int minutes) {
+    return 'Pasi shpenzohet, rinovohet 1 çdo $minutes minuta';
+  }
+
+  @override
+  String ticketsCapMax(int max) {
+    return 'Mblidhen deri në $max bileta';
+  }
+
+  @override
+  String get ticketsEarnFree => 'FITO FALAS';
+
+  @override
+  String get ticketsReviewOn => 'Fito tani';
+
+  @override
+  String get ticketsQuests => 'Detyrat';
+
+  @override
+  String get ticketsQuestsLeft => 'Mbeten sot';
+
+  @override
+  String get ticketsQuestsDone => 'Rinovohen nesër';
+
+  @override
+  String get ticketsQuestsDaily => 'Detyrat ditore';
+
+  @override
+  String get ticketsPremiumTitle => 'BILETAT MOS MBAROFSHIN';
+
+  @override
+  String get ticketsPremiumBody => 'Luaj pa pritur me Premium';
+
+  @override
   String get pathArticle => 'Artikulli';
 
   @override

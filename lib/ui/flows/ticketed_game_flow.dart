@@ -100,6 +100,8 @@ Future<bool> spendTicketForGame(
     },
     questTickets: questTickets,
     reviewAvailable: reviewAvailable,
+    maxBalance: scoreProvider.scoreWithLives?.maxLives,
+    regenMinutes: scoreProvider.scoreWithLives?.ticketRegenMinutes ?? 0,
     onGoToReview: onGoToReview,
     onGoToQuests: onGoToQuests,
     onGoPremium: PremiumStore.supported

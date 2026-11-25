@@ -1,9 +1,12 @@
+import 'package:stelinda/l10n/l10n.dart';
 import 'package:stelinda/ui/app_typography.dart';
 import 'package:stelinda/ui/widgets/app_shape_style.dart';
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:stelinda/ui/widgets/Buttons/depth_pressable_button.dart';
+import 'package:stelinda/ui/widgets/clock_mark.dart';
 import 'package:stelinda/ui/widgets/premium_ticket_mark.dart';
 import 'package:stelinda/ui/widgets/quest_flag_mark.dart';
 import 'package:stelinda/ui/widgets/quest_icons.dart';
@@ -38,11 +41,16 @@ Future<void> showOutOfTicketsPopup(
   VoidCallback? onGoPremium,
   int? questTickets,
   bool reviewAvailable = true,
+  int? maxBalance,
+  int regenMinutes = 0,
 }) {
   return _showTicketsDialog(
     context,
     (context) => OutOfTicketsCard(
       nextTicketAt: nextTicketAt,
+      balance: 0,
+      maxBalance: maxBalance,
+      regenMinutes: regenMinutes,
       onRefreshTickets: onRefreshTickets,
       onTicketsReady: () => Navigator.of(context).pop(),
       questTickets: questTickets,
@@ -192,6 +200,7 @@ class OutOfTicketsCard extends StatefulWidget {
 
   final VoidCallback onGoToReview;
   final VoidCallback onGoToQuests;
+
   /// Null ise premium düğmesi yok (satın almanın olmadığı platform).
   final VoidCallback? onGoPremium;
 
@@ -203,7 +212,8 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
     with SingleTickerProviderStateMixin {
   static const _cardFace = Color(0xFF041227);
   static const _cardBorder = Color(0xFF0B2143);
-  static const _rowFace = Color(0xFF07182F);
+  static const _tile = Color(0xFF0C2244);
+  static const _tileBase = Color(0xFF07182F);
   static const _muted = Color(0xFF8FA0B5);
   static const _countdownValue = Color(0xFFE9EEF5);
   static const _urgent = Color(0xFFFF6B3D);
@@ -251,15 +261,25 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
     return _hasTickets && max != null && widget.balance! >= max;
   }
 
-  /// Tavandaki satır: biletler dolu, harcayınca ne hızla geri gelir.
-  /// Süre bilinmiyorsa (eski sunucu) yalnız tavan söylenir.
-  String get _capText {
+  /// Tavandaki satır: harcayınca ne hızla geri gelir. Süre bilinmiyorsa
+  /// (eski sunucu) yalnız tavan söylenir.
+  String _capText(AppLocalizations l10n) {
     final minutes = widget.regenMinutes;
-    if (minutes <= 0) return 'En fazla ${widget.maxBalance} bilet birikir.';
-    final every = minutes % 60 == 0
-        ? '${minutes ~/ 60} saatte'
-        : '$minutes dakikada';
-    return 'Biletlerin dolu. Harcayınca her $every 1 bilet yenilenir.';
+    if (minutes <= 0) return l10n.ticketsCapMax(_max);
+    return minutes % 60 == 0
+        ? l10n.ticketsCapEveryHours(minutes ~/ 60)
+        : l10n.ticketsCapEveryMinutes(minutes);
+  }
+
+  /// Yuva sayısı: tavan (bilinmiyorsa 5).
+  int get _max => widget.maxBalance ?? 5;
+
+  /// Sıradaki biletin dolmuşluğu: yenilenme süresinin geçen kısmı.
+  double get _filling {
+    final left = _remaining;
+    final minutes = widget.regenMinutes;
+    if (left == null || minutes <= 0) return 0;
+    return (1 - left.inSeconds / (minutes * 60)).clamp(0.0, 1.0);
   }
 
   @override
@@ -332,15 +352,14 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
 
   bool get _renewalDue => _remaining == Duration.zero;
 
-  String get _countdownText {
+  String _countdownText(AppLocalizations l10n) {
     final left = _remaining;
-    if (left == null) return 'Birazdan';
-    if (left == Duration.zero) return 'Bilet yenileniyor';
+    if (left == null) return l10n.ticketsSoon;
     if (left.inHours > 0) {
-      return '${left.inHours} sa ${left.inMinutes - left.inHours * 60} dk';
+      return l10n.ticketsHoursMinutes(left.inHours, left.inMinutes % 60);
     }
-    if (left.inMinutes < 1) return '<1 dk';
-    return '${left.inMinutes} dk';
+    if (left.inMinutes < 1) return l10n.ticketsUnderMinute;
+    return l10n.ticketsMinutes(left.inMinutes);
   }
 
   @override
@@ -366,252 +385,367 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
   static const _contentWidth = _cardWidth - _cardPadding * 2;
 
   /// Kart dili §2.3: yüz sayfa zemini, kontur `0B2143`, altta taban dudağı.
+  ///
+  /// Yerleşim (25 Kas 2026, kullanıcı onayı; `bilet-penceresi-oneri-yakin`):
+  /// biletler beş yuvalık bir sıra (tavan 5 olduğu için sayılabilir; 15
+  /// yuva "barkod gibi" okunuyordu), dolular renkli, boşlar silüet, sıradaki
+  /// yuvada bilet yenilenme süresinin geçen kısmı kadar alttan yükselir.
+  /// Altında "3/5 bilet" (5 küçük ve soluk, ana ekrandaki gibi), geri sayım
+  /// kapsülü, "ÜCRETSİZ KAZAN" altında yan yana iki karo, en altta Premium.
+  /// Rakiplerdeki sıra: miktar görsel ve sayıyla, yollar ücretsizden
+  /// ücretliye, Premium en sonda.
   Widget _card(double scale) {
-    final radius = BorderRadius.circular(AppShapeStyle.cardRadius(34 * scale));
+    final s = scale;
+    final l10n = context.l10n;
+    final radius = BorderRadius.circular(AppShapeStyle.cardRadius(34 * s));
 
     return Container(
-      width: _cardWidth * scale,
+      width: _cardWidth * s,
       decoration: BoxDecoration(color: _cardBorder, borderRadius: radius),
-      padding: EdgeInsets.only(bottom: AppShapeStyle.cardDepth(8 * scale)),
+      padding: EdgeInsets.only(bottom: AppShapeStyle.cardDepth(8 * s)),
       child: Container(
         decoration: BoxDecoration(
           color: _cardFace,
           borderRadius: radius,
           border: Border.all(
-              color: _cardBorder, width: AppShapeStyle.outline(2 * scale)),
+              color: _cardBorder, width: AppShapeStyle.outline(2 * s)),
         ),
         padding: EdgeInsets.fromLTRB(
-          _cardPadding * scale,
-          38 * scale,
-          _cardPadding * scale,
-          28 * scale,
+          _cardPadding * s,
+          40 * s,
+          _cardPadding * s,
+          30 * s,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (_hasTickets)
-              _balanceTicket(scale)
-            else
-              _depletedTicketMascot(scale),
-            SizedBox(height: 10 * scale),
-            if (_hasTickets)
-              _balanceTitle(scale)
-            else
+            if (!_hasTickets) ...[
+              _depletedTicketMascot(s),
+              SizedBox(height: 8 * s),
               Text(
-                'Biletin bitti',
+                l10n.ticketsOut,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 46 * scale,
+                  fontSize: 46 * s,
                   fontWeight: AppTypography.heading,
                   fontFamily: AppTypography.displayFamily,
                   height: 1,
                 ),
               ),
-            SizedBox(height: 14 * scale),
+              SizedBox(height: 26 * s),
+            ],
+            _slots(s),
+            SizedBox(height: 22 * s),
+            if (_hasTickets) ...[
+              _balanceTitle(s, l10n),
+              SizedBox(height: 16 * s),
+            ],
             // Tavanda bilet yenilenmez, geri sayım yok; yerine kural:
             // ne zaman ve ne hızla geleceği (kullanıcı, 24 Kas 2026).
             if (_atCap)
               Text(
-                _capText,
+                _capText(l10n),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _muted,
-                  fontSize: 27 * scale,
-                  fontWeight: AppTypography.caption,
+                  fontSize: 26 * s,
+                  fontWeight: AppTypography.body,
                   fontFamily: AppTypography.family,
                 ),
               )
             else
-              _countdownRow(scale),
-            SizedBox(height: 26 * scale),
+              _countdownPill(s, l10n),
 
-            // Ücretsiz kazanma yolları. Rövanş önce geliyor çünkü **anlık**
-            // sonuç veriyor; görevler günlük ve bitmiş olabilir. Tavanda
-            // gizli: ödül tavanı aşmaz (§5).
+            // Ücretsiz kazanma yolları. Rövanş önce: **anlık** sonuç
+            // veriyor; görevler günlük ve bitmiş olabilir. Tavanda gizli:
+            // ödül tavanı aşmaz (§5).
             if (!_atCap) ...[
-              _earnRow(
-                scale,
-                icon: QuestIcon(questKey: 'review_two', size: 46 * scale),
-                title: 'Rövanş oyna',
-                subtitle: widget.reviewAvailable
-                    ? 'Yanlışlarını tekrarla'
-                    : 'Bekleyen rövanş kartın yok',
-                reward: widget.reviewAvailable ? 1 : null,
-                onTap: widget.reviewAvailable ? widget.onGoToReview : null,
+              SizedBox(height: 34 * s),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.ticketsEarnFree,
+                  style: TextStyle(
+                    color: _muted,
+                    fontSize: 21 * s,
+                    letterSpacing: 1.6 * s,
+                    fontWeight: AppTypography.label,
+                    fontFamily: AppTypography.family,
+                  ),
+                ),
               ),
-              SizedBox(height: 12 * scale),
-              _earnRow(
-                scale,
-                icon: QuestFlagMark(size: 44 * scale),
-                title: 'Görevleri bitir',
-                subtitle: 'Günlük görevlerden kazan',
-                reward: widget.questTickets,
-                onTap: widget.onGoToQuests,
+              SizedBox(height: 14 * s),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _earnTile(
+                      s,
+                      icon: QuestIcon(questKey: 'review_two', size: 52 * s),
+                      title: l10n.introReviewTitle,
+                      detail: widget.reviewAvailable
+                          ? l10n.ticketsReviewOn
+                          : l10n.pathReviewStationEmpty,
+                      reward: widget.reviewAvailable ? 1 : null,
+                      onTap:
+                          widget.reviewAvailable ? widget.onGoToReview : null,
+                    ),
+                  ),
+                  SizedBox(width: 16 * s),
+                  Expanded(
+                    child: _earnTile(
+                      s,
+                      icon: QuestFlagMark(size: 50 * s),
+                      title: l10n.ticketsQuests,
+                      detail: switch (widget.questTickets) {
+                        null => l10n.ticketsQuestsDaily,
+                        0 => l10n.ticketsQuestsDone,
+                        _ => l10n.ticketsQuestsLeft,
+                      },
+                      reward: widget.questTickets,
+                      onTap: widget.onGoToQuests,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 24 * scale),
             ],
-            if (widget.onGoPremium != null)
-            DepthPressableButton(
-              width: _contentWidth * scale,
-              height: 120 * scale,
-              radius: 24 * scale,
-              shadowOffset: 9 * scale,
-              backgroundColor: _accent,
-              shadowColor: _accentDeep,
-              fontSize: 28 * scale,
-              fontWeight: AppTypography.action,
-              onPressed: widget.onGoPremium!,
-              // Duolingo'nun premium dili iridescent olsa da tüm yüzeyi
-              // gökkuşağı yapmak metin kontrastını ve Karty'nin kaplama
-              // dilini bozar. Renk premium bilette, eylem accent yüzeyde.
-              child: _premiumButtonContent(scale),
-            ),
+            if (widget.onGoPremium != null) ...[
+              SizedBox(height: 26 * s),
+              DepthPressableButton(
+                width: _contentWidth * s,
+                height: 112 * s,
+                radius: 24 * s,
+                shadowOffset: 9 * s,
+                backgroundColor: _accent,
+                shadowColor: _accentDeep,
+                fontSize: 28 * s,
+                fontWeight: AppTypography.action,
+                onPressed: widget.onGoPremium!,
+                // Duolingo'nun premium dili iridescent olsa da tüm yüzeyi
+                // gökkuşağı yapmak metin kontrastını ve Karty'nin kaplama
+                // dilini bozar. Renk premium bilette, eylem accent yüzeyde.
+                child: _premiumButtonContent(s, l10n),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  /// Ücretsiz kazanma yolu — tek satır: ikon, ne olduğu, ödülü.
-  ///
-  /// Satır **§2.3 kart dilini** kullanıyor (iç panel tonu, kontur) ama
-  /// depth-press değil: bunlar birer eylem değil **yönlendirme**; asıl eylem
-  /// aşağıdaki yeşil buton. İkisi de çökseydi hangisinin birincil olduğu
-  /// kaybolurdu.
-  Widget _earnRow(
-    double scale, {
-    required Widget icon,
-    required String title,
-    required String subtitle,
-    required int? reward,
-    required VoidCallback? onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius:
-            BorderRadius.circular(AppShapeStyle.cardRadius(20 * scale)),
-        onTap: onTap,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 180),
-          opacity: onTap == null ? 0.48 : 1,
-          child: Container(
-            width: _contentWidth * scale,
-            padding: EdgeInsets.symmetric(
-              horizontal: 20 * scale,
-              vertical: 16 * scale,
-            ),
-            decoration: BoxDecoration(
-              color: _rowFace,
-              borderRadius:
-                  BorderRadius.circular(AppShapeStyle.cardRadius(20 * scale)),
-              border: Border.all(
-                  color: _cardBorder, width: AppShapeStyle.outline(2 * scale)),
-            ),
-            child: Row(
-              children: [
-                icon,
-                SizedBox(width: 16 * scale),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 27 * scale,
-                          fontWeight: AppTypography.label,
-                          fontFamily: AppTypography.family,
-                          height: 1.1,
-                        ),
-                      ),
-                      SizedBox(height: 4 * scale),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          color: _muted,
-                          fontSize: 21 * scale,
-                          fontWeight: AppTypography.body,
-                          fontFamily: AppTypography.family,
-                          height: 1.1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (reward != null && reward > 0) ...[
-                  SizedBox(width: 12 * scale),
-                  // Rozet biletin altına taştığı için widget'ın geometrik
-                  // merkezi bilet gövdesinin merkezinden aşağıdadır. Gövdeyi
-                  // satır metniyle optik olarak ortalamak için bu küçük pay
-                  // bilinçli olarak aşağı verilir.
-                  Transform.translate(
-                    offset: Offset(0, 7 * scale),
-                    child: TicketWithCount(
-                      scale: scale,
-                      count: reward,
-                      ticketWidth: 62,
-                      badgeSize: 30,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Bakiye bileti: üst şeritteki biletin büyüğü, Görevler başlığındaki gibi
-  /// kalınlık bandıyla (§2.5). Bant `Image(color:, srcIn)` ile; ShaderMask
-  /// katman açardı (§4.4).
-  Widget _balanceTicket(double scale) {
-    final width = 230 * scale;
-    final depth = 12 * scale;
-    return SizedBox(
-      width: width,
-      height: width * 110 / 172 + depth,
-      child: Stack(
+  /// Beş (tavan kadar) bilet yuvası.
+  Widget _slots(double s) {
+    final max = _max;
+    const gap = 12.0;
+    final width = math.min(104.0, (_contentWidth - gap * (max - 1)) / max);
+    final balance = widget.balance ?? 0;
+    return Semantics(
+      label: '${math.min(balance, max)}/$max ${context.l10n.ticketsUnit}',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Positioned(
-            top: depth,
-            child: Image.asset(
-              'assets/icons/ticket.png',
-              width: width,
-              color: const Color(0xFFB87E00),
-              colorBlendMode: BlendMode.srcIn,
+          for (var i = 0; i < max; i++) ...[
+            if (i > 0) SizedBox(width: gap * s),
+            _TicketSlot(
+              width: width * s,
+              fill: i < balance
+                  ? 1
+                  : i == balance && !_atCap
+                      ? _filling
+                      : 0,
             ),
-          ),
-          Image.asset('assets/icons/ticket.png', width: width),
+          ],
         ],
       ),
     );
   }
 
-  /// "8/15 bilet": tavan Görevler başlığındaki gibi kesirle (§5).
-  Widget _balanceTitle(double scale) {
-    final style = TextStyle(
-      color: Colors.white,
-      fontSize: 46 * scale,
-      fontWeight: AppTypography.heading,
-      fontFamily: AppTypography.displayFamily,
-      height: 1,
-    );
+  /// "3/5 bilet": sayı büyük, tavan küçük ve soluk (ana ekrandaki gibi).
+  Widget _balanceTitle(double s, AppLocalizations l10n) {
     return Text.rich(
       TextSpan(
-        style: style,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 54 * s,
+          fontWeight: AppTypography.number,
+          fontFamily: AppTypography.family,
+          height: 1,
+        ),
         children: [
           TextSpan(text: '${widget.balance}'),
           if (widget.maxBalance != null)
             TextSpan(
               text: '/${widget.maxBalance}',
-              style: style.copyWith(color: _muted),
+              style: TextStyle(color: _muted, fontSize: 32 * s),
             ),
-          const TextSpan(text: ' bilet'),
+          TextSpan(
+            text: '  ${l10n.ticketsUnit}',
+            style: TextStyle(
+              color: _muted,
+              fontSize: 28 * s,
+              fontWeight: AppTypography.label,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// Geri sayım: §2.10 saat simgesi, değer kalın; son 15 dakikada sıcak ton.
+  Widget _countdownPill(double s, AppLocalizations l10n) {
+    final valueColor = _isImminent ? _urgent : _countdownValue;
+    final muted = TextStyle(
+      color: _muted,
+      fontSize: 25 * s,
+      fontWeight: AppTypography.caption,
+      fontFamily: AppTypography.family,
+    );
+    final List<InlineSpan> text;
+    if (_renewalDue) {
+      text = [TextSpan(text: l10n.ticketsRenewing, style: muted)];
+    } else {
+      final value = _countdownText(l10n);
+      final sentence = l10n.ticketsNextIn(value);
+      final at = sentence.indexOf(value);
+      text = [
+        if (at > 0) TextSpan(text: sentence.substring(0, at), style: muted),
+        TextSpan(
+          text: value,
+          style: TextStyle(
+            color: valueColor,
+            fontSize: 27 * s,
+            fontWeight: AppTypography.number,
+            fontFamily: AppTypography.family,
+          ),
+        ),
+        TextSpan(text: sentence.substring(at + value.length), style: muted),
+      ];
+    }
+    return Container(
+      padding: EdgeInsets.fromLTRB(18 * s, 10 * s, 22 * s, 10 * s),
+      decoration: BoxDecoration(
+        color: _tile,
+        borderRadius: BorderRadius.circular(28 * s),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_renewalDue)
+            SizedBox(
+              width: 30 * s,
+              height: 30 * s,
+              child: CircularProgressIndicator(
+                strokeWidth: 4 * s,
+                color: _countdownValue,
+              ),
+            )
+          else
+            ClockMark(size: 34 * s, urgent: _isImminent),
+          SizedBox(width: 10 * s),
+          Flexible(
+            child: Text.rich(
+              TextSpan(children: text),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ücretsiz kazanma yolu: yan yana karo. Basılabilir ama depth-press
+  /// değil: bunlar yönlendirme, birincil eylem Premium düğmesi. Kapalı yol
+  /// görünür kalır (keşfedilsin), sönük ve basılmaz.
+  Widget _earnTile(
+    double s, {
+    required Widget icon,
+    required String title,
+    required String detail,
+    required int? reward,
+    required VoidCallback? onTap,
+  }) {
+    final radius = BorderRadius.circular(26 * s);
+    return Semantics(
+      button: onTap != null,
+      enabled: onTap != null,
+      label: '$title, $detail',
+      excludeSemantics: true,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 180),
+        opacity: onTap == null ? 0.5 : 1,
+        child: Material(
+          color: _tile,
+          borderRadius: radius,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onTap,
+            child: Container(
+              height: 160 * s,
+              padding: EdgeInsets.fromLTRB(20 * s, 16 * s, 16 * s, 12 * s),
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                border: Border(
+                  bottom: BorderSide(color: _tileBase, width: 7 * s),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        icon,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 27 * s,
+                                fontWeight: AppTypography.label,
+                                fontFamily: AppTypography.family,
+                                height: 1.1,
+                              ),
+                            ),
+                            Text(
+                              detail,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: _muted,
+                                fontSize: 21 * s,
+                                fontWeight: AppTypography.body,
+                                fontFamily: AppTypography.family,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (reward != null && reward > 0)
+                    // Rozet biletin altına taştığı için gövde optik olarak
+                    // ortalansın diye biraz aşağı (§5).
+                    Transform.translate(
+                      offset: Offset(0, 6 * s),
+                      child: TicketWithCount(
+                        scale: s,
+                        count: reward,
+                        ticketWidth: 70,
+                        badgeSize: 32,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -619,103 +753,50 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
   /// Son biletin elde tutulamayacak kadar akışkanlaşması, kaybı nesnenin
   /// kendisi üzerinden anlatır. Görsel bileti zaten içerdiği için ayrıca
   /// `ticket.png` bindirilmez.
-  Widget _depletedTicketMascot(double scale) {
+  Widget _depletedTicketMascot(double s) {
     return SizedBox(
-      height: 290 * scale,
+      height: 210 * s,
       child: Image.asset(
         'assets/icons/mascot_ticket_melt.png',
-        height: 290 * scale,
+        height: 210 * s,
         fit: BoxFit.contain,
       ),
     );
   }
 
-  Widget _countdownRow(double scale) {
-    final color = _isImminent ? _urgent : _countdownValue;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (_renewalDue)
-          SizedBox(
-            width: 27 * scale,
-            height: 27 * scale,
-            child: CircularProgressIndicator(
-              strokeWidth: 4 * scale,
-              color: _countdownValue,
-            ),
-          )
-        else
-          Icon(
-            Icons.hourglass_bottom_rounded,
-            size: 30 * scale,
-            color: _isImminent ? _urgent : _muted,
-          ),
-        SizedBox(width: 8 * scale),
-        Text(
-          _countdownText,
-          style: TextStyle(
-            color: color,
-            fontSize: 27 * scale,
-            fontWeight: AppTypography.number,
-            fontFamily: AppTypography.family,
-          ),
-        ),
-        if (!_renewalDue) ...[
-          SizedBox(width: 8 * scale),
-          Flexible(
-            child: Text(
-              'sonra yeni bilet',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: _muted,
-                fontSize: 27 * scale,
-                fontWeight: AppTypography.caption,
-                fontFamily: AppTypography.family,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  /// Premium vaadi ile eylemi tek yüzeyde toplar. Önceki sürümde aynı vaat
-  /// bilgi kartında ve altındaki butonda iki kez anlatıldığı için popup uzuyor,
-  /// iki parça da birbirinden kopuk görünüyordu.
-  Widget _premiumButtonContent(double scale) {
+  /// Premium vaadi ile eylemi tek yüzeyde toplar.
+  Widget _premiumButtonContent(double s, AppLocalizations l10n) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 22 * scale),
+      padding: EdgeInsets.symmetric(horizontal: 22 * s),
       child: Row(
         children: [
-          PremiumTicketMark(width: 108 * scale),
-          SizedBox(width: 18 * scale),
+          PremiumTicketMark(width: 96 * s),
+          SizedBox(width: 18 * s),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'BİLETİN HİÇ BİTMESİN',
+                  l10n.ticketsPremiumTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 26 * scale,
+                    fontSize: 26 * s,
                     fontWeight: AppTypography.action,
                     fontFamily: AppTypography.family,
                     height: 1.1,
                   ),
                 ),
-                SizedBox(height: 7 * scale),
+                SizedBox(height: 6 * s),
                 Text(
-                  'Premium ile beklemeden oyna',
+                  l10n.ticketsPremiumBody,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.82),
-                    fontSize: 20 * scale,
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontSize: 20 * s,
                     fontWeight: AppTypography.caption,
                     fontFamily: AppTypography.family,
                     height: 1.15,
@@ -728,4 +809,68 @@ class _OutOfTicketsCardState extends State<OutOfTicketsCard>
       ),
     );
   }
+}
+
+/// Bilet yuvası: dolu (renkli bilet, kalınlık bandı), boş (lacivert
+/// silüet) ya da dolmakta (biletin kendisi alttan [fill] kadar yükselir;
+/// soluk altın tonu lacivertte zeytine döndüğü için tam renk, §4.3).
+/// Silüet `ticket.png`'nin kendisi (`srcIn`), elle çizilmez (§5).
+class _TicketSlot extends StatelessWidget {
+  const _TicketSlot({required this.width, required this.fill});
+
+  final double width;
+  final double fill;
+
+  @override
+  Widget build(BuildContext context) {
+    final depth = width * 6 / 84;
+    final height = width * 110 / 172;
+    Widget ticket(Color? color) => Image.asset(
+          'assets/icons/ticket.png',
+          width: width,
+          color: color,
+          colorBlendMode: color == null ? null : BlendMode.srcIn,
+        );
+    final lit = fill >= 1;
+    return SizedBox(
+      width: width,
+      height: height + depth,
+      child: Stack(
+        children: [
+          Positioned(
+            top: depth,
+            child: ticket(
+              lit ? const Color(0xFFB87E00) : const Color(0xFF07182F),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            child: ticket(lit ? null : const Color(0xFF163258)),
+          ),
+          if (!lit && fill > 0)
+            Positioned(
+              top: 0,
+              child: ClipRect(
+                clipper: _BottomClip(fill),
+                child: ticket(null),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BottomClip extends CustomClipper<Rect> {
+  const _BottomClip(this.fill);
+
+  final double fill;
+
+  @override
+  Rect getClip(Size size) =>
+      Rect.fromLTRB(0, size.height * (1 - fill), size.width, size.height);
+
+  @override
+  bool shouldReclip(covariant _BottomClip oldClipper) =>
+      oldClipper.fill != fill;
 }

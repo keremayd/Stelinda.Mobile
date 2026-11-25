@@ -57,6 +57,75 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pathReinforce => 'Pekiştirme';
 
   @override
+  String get ticketsOut => 'Biletin bitti';
+
+  @override
+  String get ticketsUnit => 'bilet';
+
+  @override
+  String ticketsNextIn(String time) {
+    return '$time sonra 1 bilet';
+  }
+
+  @override
+  String get ticketsRenewing => 'Bilet yenileniyor';
+
+  @override
+  String get ticketsSoon => 'Birazdan';
+
+  @override
+  String ticketsHoursMinutes(int hours, int minutes) {
+    return '$hours sa $minutes dk';
+  }
+
+  @override
+  String ticketsMinutes(int minutes) {
+    return '$minutes dk';
+  }
+
+  @override
+  String get ticketsUnderMinute => '<1 dk';
+
+  @override
+  String ticketsCapEveryHours(int hours) {
+    return 'Harcayınca her $hours saatte 1 yenilenir';
+  }
+
+  @override
+  String ticketsCapEveryMinutes(int minutes) {
+    return 'Harcayınca her $minutes dakikada 1 yenilenir';
+  }
+
+  @override
+  String ticketsCapMax(int max) {
+    return 'En fazla $max bilet birikir';
+  }
+
+  @override
+  String get ticketsEarnFree => 'ÜCRETSİZ KAZAN';
+
+  @override
+  String get ticketsReviewOn => 'Hemen kazan';
+
+  @override
+  String get ticketsQuests => 'Görevler';
+
+  @override
+  String get ticketsQuestsLeft => 'Bugün kalan';
+
+  @override
+  String get ticketsQuestsDone => 'Yarın yenilenir';
+
+  @override
+  String get ticketsQuestsDaily => 'Günlük görevler';
+
+  @override
+  String get ticketsPremiumTitle => 'BİLETİN HİÇ BİTMESİN';
+
+  @override
+  String get ticketsPremiumBody => 'Premium ile beklemeden oyna';
+
+  @override
   String get pathArticle => 'Artikel';
 
   @override
