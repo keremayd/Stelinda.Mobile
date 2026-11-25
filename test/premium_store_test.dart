@@ -46,6 +46,14 @@ void main() {
     expect(offer.trialDays, PremiumStore.trialDays);
   });
 
+  test('Aylık karşılık mağazanın fiyat biçimini izler', () {
+    expect(PremiumStore.priceLike('₺900,00', 75), '₺75,00');
+    expect(PremiumStore.priceLike(r'$34.99', 34.99 / 12), r'$2.92');
+    expect(PremiumStore.priceLike('34,99 €', 34.99 / 12), '2,92 €');
+    expect(PremiumStore.priceLike('₺10.799,99', 10799.99 / 12), '₺900,00');
+    expect(PremiumStore.priceLike('¥5,000', 5000 / 12), '¥417');
+  });
+
   test('Denemeye uygun değilse deneme gösterilmez', () {
     final offer = PremiumStore.offerFrom(
       yearly: _product(PremiumStore.yearlyId, 900, '₺900,00'),

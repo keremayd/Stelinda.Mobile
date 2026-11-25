@@ -87,6 +87,32 @@ class PremiumStore {
     }
   }
 
+  /// [value]'yu mağazanın verdiği [price] metninin biçimiyle yazar: sembol
+  /// yeri, ondalık ayırıcı ve hane sayısı aynı kalır ("₺900,00" → "₺75,00",
+  /// "$34.99" → "$2.92", "34,99 €" → "2,92 €"). Biçim uygulamanın dilinden
+  /// değil mağazanın bölgesinden gelir: İngilizce telefondaki Türkiye
+  /// mağazası yine "₺" ve virgül gösterir. Sayı bulunamazsa null.
+  @visibleForTesting
+  static String? priceLike(String price, double value) {
+    final match = RegExp(r'\d(?:[\d.,\s\u00a0\u202f]*\d)?').firstMatch(price);
+    if (match == null) return null;
+    final number = match.group(0)!;
+    final fraction = RegExp(r'[.,](\d{1,2})$').firstMatch(number);
+    final decimals = fraction?.group(1)!.length ?? 0;
+    final decimalSeparator =
+        fraction == null ? '.' : number[number.length - decimals - 1];
+    final groupSeparator = decimalSeparator == ',' ? '.' : ',';
+    final fixed = value.toStringAsFixed(decimals);
+    final parts = fixed.split('.');
+    final whole = parts[0].replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (_) => groupSeparator,
+    );
+    final formatted =
+        decimals == 0 ? whole : '$whole$decimalSeparator${parts[1]}';
+    return price.replaceRange(match.start, match.end, formatted);
+  }
+
   /// Ekran fiyat hesaplamaz; yıllığın aylık karşılığı ve indirim burada.
   @visibleForTesting
   static PremiumOffer offerFrom({
@@ -94,12 +120,13 @@ class PremiumStore {
     required ProductDetails monthly,
     required bool trialEligible,
   }) {
-    final perMonth = NumberFormat.currency(
-      locale: 'tr_TR',
-      name: yearly.currencyCode,
-      symbol: yearly.currencySymbol,
-      decimalDigits: 2,
-    ).format(yearly.rawPrice / 12);
+    final perMonth = priceLike(yearly.price, yearly.rawPrice / 12) ??
+        NumberFormat.currency(
+          locale: 'tr_TR',
+          name: yearly.currencyCode,
+          symbol: yearly.currencySymbol,
+          decimalDigits: 2,
+        ).format(yearly.rawPrice / 12);
     final saving = monthly.rawPrice > 0
         ? (100 * (1 - yearly.rawPrice / (monthly.rawPrice * 12))).round()
         : 0;
